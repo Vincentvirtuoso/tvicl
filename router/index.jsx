@@ -1,0 +1,33 @@
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import App from "../src/App";
+import Home from "../src/pages/Home";
+import PropertyLayout from "../src/layouts/PropertyLayout";
+import PropertyDetail from "../src/pages/PropertyDetail";
+import Cart from "../src/pages/Cart";
+import PropertyList from "../src/pages/PropertyList";
+import NotFound from "../src/pages/NotFound";
+import WishList from "../src/pages/WishList";
+
+const Router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+    children: [
+      { index: true, element: <Home /> },
+      {
+        path: "property",
+        element: <PropertyLayout />,
+        children: [
+          { index: true, element: <Navigate to="list" replace /> },
+          { path: "list", element: <PropertyList /> },
+          { path: ":id/details", element: <PropertyDetail /> },
+          { path: "wishlist", element: <WishList /> },
+        ],
+      },
+      { path: "cart", element: <Cart /> },
+      { path: "*", element: <NotFound /> },
+    ],
+  },
+]);
+
+export default Router;
