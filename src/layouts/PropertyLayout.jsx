@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import SectionTitle from "../components/common/SectionTitle";
+import Hero from "../components/layout/Hero";
 
 const PropertyLayout = () => {
   const location = useLocation();
@@ -27,21 +28,7 @@ const PropertyLayout = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Hero Section */}
-      <section className="relative h-[300px] flex items-center justify-center bg-secondary/90 text-white overflow-hidden">
-        <motion.img
-          src="/images/hero.jpeg"
-          alt="Property Hero"
-          className="absolute inset-0 w-full h-full object-cover opacity-25"
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-        />
-        <SectionTitle
-          title={getHeroTitle()}
-          subtitle={getHeroSubtitle()}
-          className="z-10 "
-        />
-      </section>
+      <Hero title={getHeroTitle()} subtitle={getHeroSubtitle()} />
 
       {/* Content Wrapper */}
       <motion.main

@@ -7,6 +7,7 @@ import Cart from "../src/pages/Cart";
 import PropertyList from "../src/pages/PropertyList";
 import NotFound from "../src/pages/NotFound";
 import WishList from "../src/pages/WishList";
+import AccountPage from "../src/pages/Account";
 
 const Router = createBrowserRouter([
   {
@@ -25,6 +26,7 @@ const Router = createBrowserRouter([
         ],
       },
       { path: "cart", element: <Cart /> },
+      { path: "account", element: <AccountPage /> },
       { path: "*", element: <NotFound /> },
     ],
   },

@@ -69,7 +69,7 @@ const PropertyCard = ({ property = {}, query = "" }) => {
       index: (g.index - 1 + g.images.length) % g.images.length,
     }));
 
-  useBodyScrollLock(activeGallery.images);
+  useBodyScrollLock(activeGallery.open);
 
   return (
     <motion.div

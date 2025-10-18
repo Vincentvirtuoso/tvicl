@@ -167,7 +167,7 @@ const Navbar = () => {
           <motion.div
             whileTap={{ scale: 0.9 }}
             className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/10 cursor-pointer"
-            onClick={() => navigate("/profile")}
+            onClick={() => navigate("/account")}
           >
             <FiUser className="text-xl" />
           </motion.div>
