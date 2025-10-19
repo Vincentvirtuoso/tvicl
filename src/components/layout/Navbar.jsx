@@ -55,7 +55,7 @@ const Navbar = () => {
     { label: "Properties", to: "/property/list" },
     { label: "About", to: "/about" },
     { label: "Contact", to: "tel:+2348102345678" },
-    { label: "Interior Decorations, to: "/interior" }
+    { label: "Interior Decorations", to: "/interior" }
   ];
 
   const actions = [
