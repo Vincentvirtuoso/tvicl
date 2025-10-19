@@ -55,17 +55,12 @@ const Navbar = () => {
     { label: "Properties", to: "/property/list" },
     { label: "About", to: "/about" },
     { label: "Contact", to: "tel:+2348102345678" },
+    { label: "Interior Decorations, to: "/interior" }
   ];
 
   const actions = [
     {
-      label: "Become an Agent",
-      icon: <FaUserTie className="text-lg" />,
-      color: "text-blue-600",
-      bg: "hover:bg-blue-50",
-    },
-    {
-      label: "Become a Buyer",
+      label: "Switch to Estate Mode",
       icon: <MdOutlineAddHomeWork className="text-lg" />,
       color: "text-emerald-600",
       bg: "hover:bg-emerald-50",
@@ -222,7 +217,7 @@ const Navbar = () => {
               <button onClick={() => handleNavigate("/property/wishlist")}>
                 <FiHeart className="inline mr-2" /> Saved Properties
               </button>
-              <button onClick={() => handleNavigate("/profile")}>
+              <button onClick={() => handleNavigate("/account")}>
                 <FiUser className="inline mr-2" /> My Account
               </button>
             </div>
