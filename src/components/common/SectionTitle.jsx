@@ -1,6 +1,4 @@
-import React from "react";
 import { motion } from "framer-motion";
-// import PropTypes from "prop-types";
 
 const SectionTitle = ({
   title,
@@ -27,8 +25,7 @@ const SectionTitle = ({
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={`w-full mb-8 text-${align} ${className}`}
     >
@@ -66,15 +63,5 @@ const SectionTitle = ({
     </motion.div>
   );
 };
-
-// SectionTitle.propTypes = {
-//   title: PropTypes.string.isRequired,
-//   subtitle: PropTypes.string,
-//   align: PropTypes.oneOf(["left", "center", "right"]),
-//   color: PropTypes.string,
-//   size: PropTypes.oneOf(["sm", "md", "lg", "xl"]),
-//   showLine: PropTypes.bool,
-//   className: PropTypes.string,
-// };
 
 export default SectionTitle;

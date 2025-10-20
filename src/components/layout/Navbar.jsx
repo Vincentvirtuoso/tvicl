@@ -4,34 +4,30 @@ import {
   FiX,
   FiSearch,
   FiShoppingCart,
-  FiHeart,
   FiUser,
-  FiSun,
-  FiMoon,
   FiBell,
   FiPhone,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useScrollTracker } from "../../hooks/useScrollTracker";
 import { useCart } from "../../context/CartContext";
-import { useNavigate, NavLink } from "react-router-dom";
+import { useNavigate, NavLink, useLocation } from "react-router-dom";
 import { IoBriefcaseOutline } from "react-icons/io5";
 import { FaHandHoldingUsd } from "react-icons/fa";
 import { MdOutlineAddHomeWork } from "react-icons/md";
 import MiniCartDrawer from "../../section/cart/MiniCartDrawer";
-import Divider from "../common/Divider";
 import logo from "/images/logo.png";
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { useScreen } from "../../hooks/useScreen";
-import { Loader } from "../common/Loader"; // named export
+import NotificationPanel from "../dropdown/navbar/NotificationPanel";
+import ProfileDropdown from "../dropdown/navbar/ProfileDropdown";
+import MobileMenu from "../dropdown/navbar/MobileMenu";
 
 const MOCK_AUTH_KEY = "mock_auth_user";
-const THEME_KEY = "app_theme"; // "light" | "dark"
-
-const primary = "text-[#25aff3]";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { scrollY } = useScrollTracker();
   const { items } = useCart();
   const { isDesktop } = useScreen();
@@ -48,7 +44,9 @@ const Navbar = () => {
   const isScrolled = scrollY > 55;
 
   // Body lock only when mobile menu open
-  useBodyScrollLock(menuOpen && !isDesktop);
+  useBodyScrollLock(
+    (menuOpen && !isDesktop) || notifOpen || (profileMenuOpen && isDesktop)
+  );
 
   // Mock auth load from localStorage (persisted)
   useEffect(() => {
@@ -69,6 +67,12 @@ const Navbar = () => {
     }, 200); // small shimmer to avoid flicker
     return () => clearTimeout(t);
   }, []);
+
+  useEffect(() => {
+    if (searchOpen) {
+      navigate("/property/list", { state: { isSearch: true } });
+    }
+  }, [searchOpen]);
 
   const loginMock = useCallback(() => {
     const fakeUser = {
@@ -108,7 +112,18 @@ const Navbar = () => {
 
   // ensure menu closes when switching to desktop
   useEffect(() => {
-    if (isDesktop) setMenuOpen(false);
+    if (isDesktop) {
+      if (menuOpen) {
+        setMenuOpen(false);
+        setProfileMenuOpen(true);
+      }
+    } else {
+      if (profileMenuOpen) {
+        setProfileMenuOpen(false);
+        setMenuOpen(true);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDesktop]);
 
   const handleNavigate = useCallback(
@@ -122,6 +137,16 @@ const Navbar = () => {
     },
     [navigate]
   );
+
+  const closeDropdowns = () => {
+    setMenuOpen(false);
+    setProfileMenuOpen(false);
+    setNotifOpen(false);
+  };
+
+  useEffect(() => {
+    closeDropdowns();
+  }, [pathname]);
 
   const navLinks = [
     { label: "Home", to: "/" },
@@ -166,17 +191,6 @@ const Navbar = () => {
     </NavLink>
   );
 
-  const ActionButton = ({ label, icon, color, bg }) => (
-    <motion.button
-      whileHover={{ scale: 1.03, y: -2 }}
-      whileTap={{ scale: 0.97 }}
-      className={`flex items-center gap-2 w-[240px] justify-center py-2 px-4 border text-sm border-gray-200 rounded-xl shadow-sm font-medium text-gray-700 bg-white ${bg}`}
-    >
-      {" "}
-      <span className={color}>{icon}</span> {label}{" "}
-    </motion.button>
-  );
-
   /** Render */
   return (
     <>
@@ -189,9 +203,7 @@ const Navbar = () => {
             : "0 0 0 rgba(0,0,0,0)",
         }}
         transition={{ duration: 0.25 }}
-        className={`fixed top-0 left-0 w-full z-50 backdrop-blur-sm ${
-          isScrolled ? "border-b" : ""
-        }`}
+        className="fixed top-0 left-0 w-full z-50"
       >
         <div
           className={`max-w-7xl mx-auto flex items-center justify-between px-4 lg:px-8 py-3 transition-colors duration-200 ${
@@ -264,36 +276,6 @@ const Navbar = () => {
                   4
                 </span>
               </button>
-              <AnimatePresence>
-                {notifOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -6 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.98, y: -6 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-4 w-72 dark:bg-white bg-neutral-900 shadow-lg rounded-lg p-3 z-40"
-                  >
-                    <div className="text-sm dark:text-gray-900 text-gray-200">
-                      You have 4 new notifications
-                    </div>
-                    <Divider margin="my-2" />
-                    <div className="flex flex-col gap-4 text-gray-900">
-                      <button className="text-left text-sm">
-                        New message from the Admin
-                      </button>
-                      <button className="text-left text-sm">
-                        Payment for Skyline property will be due tomorrow
-                      </button>
-                      <button className="text-left text-sm">
-                        Property inquiry: Here's the feedback
-                      </button>
-                      <button className="text-left text-sm">
-                        An agent sent a request to join your estate
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
 
             {/* contact */}
@@ -321,112 +303,13 @@ const Navbar = () => {
               >
                 <FiUser className="text-lg" />
               </button>
-
-              {/* profile dropdown (desktop only) */}
-              <AnimatePresence>
-                {profileMenuOpen && isDesktop && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute top-14 -right-2 mt-2 w-80 bg-white rounded-lg shadow-lg p-4 z-50 text-gray-600"
-                  >
-                    {/* auth loading */}
-                    {loadingAuth ? (
-                      <div className="flex items-center justify-center py-6">
-                        <Loader variant="spinner" size={36} label="" />
-                      </div>
-                    ) : user ? (
-                      <div className="flex flex-col gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gray-100  flex items-center justify-center text-sm font-medium text-gray-600">
-                            {user.name
-                              ?.split(" ")
-                              .map((s) => s[0])
-                              .slice(0, 2)
-                              .join("")}
-                          </div>
-                          <div>
-                            <div className="font-semibold">{user.name}</div>
-                            <div className="text-xs text-gray-500">
-                              {user.email}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-2 pt-4 border-t border-gray-500/20">
-                          <button
-                            onClick={() => navigate("/account")}
-                            className="text-left text-sm"
-                          >
-                            My profile
-                          </button>
-                          <button
-                            onClick={() => navigate("/account/settings")}
-                            className="text-left text-sm"
-                          >
-                            Account settings
-                          </button>
-                          <button
-                            onClick={() => navigate("/property/wishlist")}
-                            className="text-left text-sm"
-                          >
-                            Saved properties
-                          </button>
-                        </div>
-
-                        <div className="flex flex-col items-center gap-2 pt-4 border-t border-gray-500/20">
-                          {actions.map((a, i) => (
-                            <ActionButton key={i} {...a} />
-                          ))}
-                        </div>
-
-                        <Divider margin="my-2" width="w-full" />
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={logoutMock}
-                            className="flex-1 py-2 rounded-md bg-rose-500 text-white text-sm"
-                          >
-                            Sign out
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-3">
-                        <div className="text-sm">You are not signed in</div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={loginMock}
-                            className="flex-1 py-2 rounded-md bg-[#25aff3] text-black text-sm"
-                          >
-                            Sign in (mock)
-                          </button>
-                          <button
-                            onClick={() => navigate("/signup")}
-                            className="flex-1 py-2 rounded-md border border-gray-200 text-sm"
-                          >
-                            Sign up
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
 
             {/* mobile menu toggle */}
             <div className="lg:hidden">
               {menuOpen ? (
                 <button
-                  onClick={() => {
-                    if (notifOpen) {
-                      setNotifOpen(false);
-                    }
-                    setMenuOpen(false);
-                  }}
+                  onClick={() => setMenuOpen(false)}
                   aria-label="Close menu"
                   className="p-2 rounded-md"
                 >
@@ -434,7 +317,12 @@ const Navbar = () => {
                 </button>
               ) : (
                 <button
-                  onClick={() => setMenuOpen(true)}
+                  onClick={() => {
+                    if (notifOpen) {
+                      setNotifOpen(false);
+                    }
+                    setMenuOpen(true);
+                  }}
                   aria-label="Open menu"
                   className="p-2 rounded-md z-1"
                 >
@@ -446,71 +334,50 @@ const Navbar = () => {
         </div>
       </motion.nav>
 
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.aside
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "105%" }}
-            transition={{ type: "spring", stiffness: 120, damping: 22 }}
-            className="fixed top-16 right-2 w-80 max-w-full bg-white z-40 shadow-2xl py-6 px-3 max-h-[90vh] rounded-xl"
-            aria-label="Mobile menu"
-          >
-            <nav className="flex flex-col gap-4 items-center">
-              <div className="flex flex-col gap-2 overflow-y-auto max-h-[calc(90vh-50px)] items-center">
-                {navLinks.map((n) => (
-                  <NavLink
-                    key={n.to}
-                    to={n.to}
-                    onClick={() => setMenuOpen(false)}
-                    className="py-2 px-3 rounded-md text-sm hover:text-primary"
-                  >
-                    {n.label}
-                  </NavLink>
-                ))}
-              </div>
+      <div className="fixed top-20 right-4 z-[40] flex flex-col gap-3">
+        {/* Overlay */}
+        {menuOpen || profileMenuOpen || notifOpen ? (
+          <motion.div
+            key="overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.4 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black z-30"
+            onClick={closeDropdowns}
+          />
+        ) : null}
 
-              <div className="flex flex-col gap-2 border-t border-gray-500/20 pt-4 w-full items-center">
-                {actions.map((a, i) => (
-                  <ActionButton key={i} {...a} />
-                ))}
-              </div>
+        {/* Notifications Dropdown */}
+        <AnimatePresence>{notifOpen && <NotificationPanel />}</AnimatePresence>
 
-              <div className="flex gap-2 sticky bottom-0 w-full">
-                {user ? (
-                  <button
-                    onClick={logoutMock}
-                    className="flex-1 py-2 rounded-md bg-rose-500 text-white"
-                  >
-                    Sign out
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        loginMock();
-                        setMenuOpen(false);
-                      }}
-                      className="flex-1 py-2 rounded-md bg-primary text-black"
-                    >
-                      Sign in
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigate("/signup");
-                        setMenuOpen(false);
-                      }}
-                      className="flex-1 py-2 rounded-md border"
-                    >
-                      Sign up
-                    </button>
-                  </>
-                )}
-              </div>
-            </nav>
-          </motion.aside>
-        )}
-      </AnimatePresence>
+        {/* Profile Dropdown (Desktop Only) */}
+        <AnimatePresence>
+          {profileMenuOpen && isDesktop && (
+            <ProfileDropdown
+              user={user}
+              loadingAuth={loadingAuth}
+              actions={actions}
+              loginMock={loginMock}
+              logoutMock={logoutMock}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {menuOpen && !isDesktop && (
+            <MobileMenu
+              navLinks={navLinks}
+              onClose={() => setMenuOpen(false)}
+              actions={actions}
+              user={user}
+              loginMock={loginMock}
+              logoutMock={logoutMock}
+            />
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Mini Cart Drawer */}
       <MiniCartDrawer

@@ -70,7 +70,7 @@ const MiniCartDrawer = ({ isOpen, onClose, cart }) => {
                       </div>
                     </div>
                     <p className="font-semibold text-sm">
-                      ${(item.price * item.quantity).toLocaleString()}
+                      &#8358;{(item.price * item.quantity).toLocaleString()}
                     </p>
                   </motion.div>
                 ))

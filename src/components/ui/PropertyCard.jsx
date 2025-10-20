@@ -167,7 +167,7 @@ const PropertyCard = ({ property = {}, query = "" }) => {
         </p>
 
         {/* --- Features --- */}
-        <div className="flex flex-wrap items-center gap-4 text-gray-600 text-xs mt-3">
+        <div className="flex flex-wrap items-center gap-4 text-gray-600 text-xs my-4">
           <div className="flex items-center gap-1">
             <LuBed className="w-4 h-4" /> {bedrooms} Beds
           </div>
@@ -184,7 +184,7 @@ const PropertyCard = ({ property = {}, query = "" }) => {
         </div>
         {/* --- Lease Info --- */}
         {lease && (
-          <div className="my-4 text-xs text-gray-600 flex flex-wrap gap-2">
+          <div className="mb-4 text-xs text-gray-600 flex flex-wrap gap-2">
             <span className="bg-gray-100 px-2 py-1 rounded-md border border-gray-300/50">
               {lease.rentType}
             </span>
@@ -233,11 +233,11 @@ const PropertyCard = ({ property = {}, query = "" }) => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
           >
-            <div className="max-w-4xl w-full relative">
+            <div className="max-w-4xl w-full relative h-[60vh]">
               <img
                 src={activeGallery.images[activeGallery.index]}
                 alt="gallery"
-                className="w-full h-[60vh] object-cover rounded-lg shadow-lg"
+                className="w-full h-full object-cover rounded-lg shadow-lg"
               />
 
               <button
