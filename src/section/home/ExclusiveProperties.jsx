@@ -42,7 +42,7 @@ const ExclusiveProperties = () => {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
-        className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 my-8"
+        className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 my-8"
       >
         {exclusiveProperties.map((property) => (
           <motion.div

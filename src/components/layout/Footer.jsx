@@ -42,7 +42,7 @@ const Footer = ({
               <img
                 src={logo}
                 alt={`${companyName} logo`}
-                className="h-10 w-auto object-contain"
+                className="h-10 w-auto object-contain rounded-full"
               />
             )}
             <div className="flex flex-col">
