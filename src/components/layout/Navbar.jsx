@@ -493,13 +493,13 @@ const Navbar = () => {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98, y: -6 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-4 w-72 dark:bg-white bg-neutral-900 shadow-lg rounded-lg p-3 z-40"
+                    className="absolute right-0 top-16 mt-4 w-72 dark:bg-white bg-neutral-900 shadow-lg rounded-lg p-3 z-40"
                   >
                     <div className="text-sm dark:text-gray-900 text-gray-200">
                       You have 4 new notifications
                     </div>
                     <Divider margin="my-2" />
-                    <div className="flex flex-col gap-4 text-gray-900">
+                    <div className="flex flex-col gap-4 dark:text-gray-900 text-gray-200">
                       <button className="text-left text-sm">
                         New message from the Admin
                       </button>
