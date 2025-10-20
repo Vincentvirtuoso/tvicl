@@ -13,7 +13,7 @@ import {
 } from "react-icons/fi";
 import TextArea from "../../components/common/TextArea";
 import Input from "../../components/common/Input";
-import ActivityTab from "../../subsection/MainSection/ActivityTab";
+import ActivityTab from "../../subsection/mainSection/ActivityTab";
 
 // Icon mapping for fields
 const fieldIcons = {
