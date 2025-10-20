@@ -194,7 +194,7 @@ const Navbar = () => {
         }`}
       >
         <div
-          className={`max-w-7xl mx-auto flex items-center justify-between px-4 lg:px-8 py-3 transition-colors duration-200 ${
+          className={`max-w-7xl mx-auto flex items-center justify-between relative px-4 lg:px-8 py-3 transition-colors duration-200 ${
             isScrolled ? "text-black" : "text-white"
           }`}
         >
@@ -248,7 +248,6 @@ const Navbar = () => {
             </button>
 
             {/* notifications */}
-            <div className="relative">
               <button
                 onClick={() => {
                   if (menuOpen) {
@@ -264,37 +263,6 @@ const Navbar = () => {
                   4
                 </span>
               </button>
-              <AnimatePresence>
-                {notifOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -6 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.98, y: -6 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-4 w-72 dark:bg-white bg-neutral-900 shadow-lg rounded-lg p-3 z-40"
-                  >
-                    <div className="text-sm dark:text-gray-900 text-gray-200">
-                      You have 4 new notifications
-                    </div>
-                    <Divider margin="my-2" />
-                    <div className="flex flex-col gap-4 text-gray-900">
-                      <button className="text-left text-sm">
-                        New message from the Admin
-                      </button>
-                      <button className="text-left text-sm">
-                        Payment for Skyline property will be due tomorrow
-                      </button>
-                      <button className="text-left text-sm">
-                        Property inquiry: Here's the feedback
-                      </button>
-                      <button className="text-left text-sm">
-                        An agent sent a request to join your estate
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
 
             {/* contact */}
             <button
@@ -518,6 +486,36 @@ const Navbar = () => {
         onClose={() => setDrawerOpen(false)}
         cart={items}
       />
+      <AnimatePresence>
+                {notifOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.98, y: -6 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-4 w-72 dark:bg-white bg-neutral-900 shadow-lg rounded-lg p-3 z-40"
+                  >
+                    <div className="text-sm dark:text-gray-900 text-gray-200">
+                      You have 4 new notifications
+                    </div>
+                    <Divider margin="my-2" />
+                    <div className="flex flex-col gap-4 text-gray-900">
+                      <button className="text-left text-sm">
+                        New message from the Admin
+                      </button>
+                      <button className="text-left text-sm">
+                        Payment for Skyline property will be due tomorrow
+                      </button>
+                      <button className="text-left text-sm">
+                        Property inquiry: Here's the feedback
+                      </button>
+                      <button className="text-left text-sm">
+                        An agent sent a request to join your estate
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
     </>
   );
 };
