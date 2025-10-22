@@ -8,6 +8,9 @@ import PropertyList from "../src/pages/PropertyList";
 import NotFound from "../src/pages/NotFound";
 import WishList from "../src/pages/WishList";
 import AccountPage from "../src/pages/Account";
+import AuthLayout from "../src/layouts/AuthLayout";
+import Login from "../src/pages/Login";
+import Register from "../src/pages/Register";
 
 const Router = createBrowserRouter([
   {
@@ -23,6 +26,15 @@ const Router = createBrowserRouter([
           { path: "list", element: <PropertyList /> },
           { path: ":id/details", element: <PropertyDetail /> },
           { path: "wishlist", element: <WishList /> },
+        ],
+      },
+      {
+        path: "auth",
+        element: <AuthLayout />,
+        children: [
+          { index: true, element: <Navigate to="login" replace /> },
+          { path: "login", element: <Login /> },
+          { path: "sign-up", element: <Register /> },
         ],
       },
       { path: "cart", element: <Cart /> },

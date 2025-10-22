@@ -8,10 +8,14 @@ const MobileMenu = ({
   onClose,
   actions,
   user,
-  loginMock,
+  // loginMock,
   logoutMock,
 }) => {
   const navigate = useNavigate();
+  const handleLogin = () => {
+    navigate("/auth");
+    onClose();
+  };
   return (
     <motion.aside
       key="mobile-menu"
@@ -53,10 +57,7 @@ const MobileMenu = ({
           ) : (
             <>
               <button
-                onClick={() => {
-                  loginMock();
-                  onClose();
-                }}
+                onClick={handleLogin}
                 className="flex-1 py-2 rounded-md bg-primary text-black"
               >
                 Sign in

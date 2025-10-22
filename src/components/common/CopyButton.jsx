@@ -4,18 +4,16 @@ import useClipboard from "../../hooks/useClipboard";
 import { useToast } from "../../context/ToastManager";
 import { useEffect } from "react";
 
-function CopyButton({ textToCopy, position = "bottom-right", duration = 2 }) {
-  duration *= 1000;
-  const { copy, isCopied, error } = useClipboard(duration);
+function CopyButton({ textToCopy, toastPosition = "bottom-right" }) {
+  const { copy, isCopied, error } = useClipboard();
   const { addToast } = useToast();
 
   useEffect(() => {
-    if (!textToCopy || !isCopied) return;
-    addToast("Link copied", "success", { duration, position });
+    addToast("Link copied", "success", { duration: 2500, position:toastPosition });
   }, [isCopied]);
 
   if (error) {
-    addToast("Link copied", "error", { duration, position });
+    addToast("Link copied", "error", { duration: 2500, position:toastPosition });
   }
 
   return (
