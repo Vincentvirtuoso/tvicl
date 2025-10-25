@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   FiCheckCircle,
@@ -11,44 +11,40 @@ import { useAuth } from "../../hooks/useAuth";
 const VerifyEmail = () => {
   const { token } = useParams();
   const navigate = useNavigate();
-  const { loading, verifyEmail } = useAuth();
+  const { verifyEmail } = useAuth();
 
   const [status, setStatus] = useState("verifying"); // verifying | success | failed | already
-  const [retry, setRetry] = useState(false);
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    const verifyToken = async () => {
-      try {
-        const res = await verifyEmail(token);
-
-        if (res.alreadyVerified) {
-          setStatus("already");
-          setMessage(res.message || "Your email is already verified.");
-          return;
-        }
-
+  const handleVerify = useCallback(async () => {
+    setStatus("verifying");
+    try {
+      const res = await verifyEmail(token);
+      if (res.alreadyVerified) {
+        setStatus("already");
+        setMessage(res.message || "Your email is already verified.");
+      } else {
         setStatus("success");
         setMessage(res.message || "Your email has been successfully verified!");
-      } catch (err) {
-        setStatus("failed");
-        setMessage(
-          err.response?.data?.message ||
-            "This verification link is invalid or has expired."
-        );
-      } finally {
-        setRetry(false);
       }
-    };
+    } catch (err) {
+      setStatus("failed");
+      setMessage(
+        err.response?.data?.message ||
+          "This verification link is invalid or has expired."
+      );
+    }
+  }, [token, verifyEmail]);
 
-    verifyToken();
-  }, [retry, token, verifyEmail]);
+  useEffect(() => {
+    handleVerify();
+  }, [handleVerify]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="bg-white shadow-xl rounded-xl p-8 max-w-md w-full text-center border border-gray-100">
-        {/* Loading State */}
-        {loading.verifyEmail && (
+        {/* Loading */}
+        {status === "verifying" && (
           <>
             <FiLoader className="animate-spin text-blue-500 mx-auto mb-4" size={50} />
             <h2 className="text-xl font-semibold text-gray-800">
@@ -60,8 +56,8 @@ const VerifyEmail = () => {
           </>
         )}
 
-        {/* Success State */}
-        {!loading.verifyEmail && status === "success" && (
+        {/* Success */}
+        {status === "success" && (
           <>
             <FiCheckCircle className="text-green-500 mx-auto mb-4" size={55} />
             <h2 className="text-2xl font-semibold text-green-700">Email Verified ✅</h2>
@@ -76,7 +72,7 @@ const VerifyEmail = () => {
         )}
 
         {/* Already Verified */}
-        {!loading.verifyEmail && status === "already" && (
+        {status === "already" && (
           <>
             <FiCheckCircle className="text-green-500 mx-auto mb-4" size={55} />
             <h2 className="text-2xl font-semibold text-green-700">Already Verified</h2>
@@ -90,8 +86,8 @@ const VerifyEmail = () => {
           </>
         )}
 
-        {/* Failed State */}
-        {!loading.verifyEmail && status === "failed" && (
+        {/* Failed */}
+        {status === "failed" && (
           <>
             <FiXCircle className="text-red-500 mx-auto mb-4" size={55} />
             <h2 className="text-2xl font-semibold text-red-600">Verification Failed</h2>
@@ -105,7 +101,7 @@ const VerifyEmail = () => {
             </Link>
 
             <button
-              onClick={() => setRetry(true)}
+              onClick={handleVerify}
               className="mt-3 w-full border border-gray-300 hover:bg-gray-100 py-2 rounded-md transition inline-flex justify-center items-center text-gray-700"
             >
               <FiRefreshCcw className="mr-2" /> Try Again

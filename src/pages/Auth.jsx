@@ -175,7 +175,7 @@ const validate = () => {
         error.response?.data?.message ||
           "Auth failed. Check your data connetion and try again",
         "error",
-        { duration: 6000}
+        { duration: 6000 }
       );
     }
 
