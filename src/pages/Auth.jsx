@@ -295,6 +295,8 @@ const validate = () => {
                 </motion.div>
               </div>
 
+              {import.meta.env.VITE_TVICL_API_URL||"Nothing"}
+
               <div className="text-sm text-gray-500">
                 {isRegister ? "Already a member?" : "New to TVICL?"}{" "}
                 <button
