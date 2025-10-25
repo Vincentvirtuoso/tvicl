@@ -9,11 +9,18 @@ function CopyButton({ textToCopy, toastPosition = "bottom-right" }) {
   const { addToast } = useToast();
 
   useEffect(() => {
-    addToast("Link copied", "success", { duration: 2500, position:toastPosition });
+    if (!textToCopy) return;
+    addToast("Link copied", "success", {
+      duration: 2500,
+      position: toastPosition,
+    });
   }, [isCopied]);
 
   if (error) {
-    addToast("Link copied", "error", { duration: 2500, position:toastPosition });
+    addToast("Link copied", "error", {
+      duration: 2500,
+      position: toastPosition,
+    });
   }
 
   return (

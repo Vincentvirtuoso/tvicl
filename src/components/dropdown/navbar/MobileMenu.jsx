@@ -2,20 +2,23 @@ import React from "react";
 import { motion } from "framer-motion";
 import { NavLink, useNavigate } from "react-router-dom";
 import ActionButton from "../../others/ActionButton";
+import {useAuth} from "../../../hooks/useAuth";
 
 const MobileMenu = ({
   navLinks,
   onClose,
   actions,
-  user,
+  // user,
   // loginMock,
   logoutMock,
 }) => {
   const navigate = useNavigate();
-  const handleLogin = () => {
-    navigate("/auth");
+  const{user}=useAuth()
+  const handleAuth = (action) => {
+    navigate("/auth", { state: { from: "mobile-menu", action } });
     onClose();
   };
+
   return (
     <motion.aside
       key="mobile-menu"
@@ -50,24 +53,21 @@ const MobileMenu = ({
           {user ? (
             <button
               onClick={logoutMock}
-              className="flex-1 py-2 rounded-md bg-rose-500 text-white"
+              className="text-sm flex-1 py-2 rounded-md bg-rose-500 text-white"
             >
-              Sign out
+              Logout
             </button>
           ) : (
             <>
               <button
-                onClick={handleLogin}
-                className="flex-1 py-2 rounded-md bg-primary text-black"
+                onClick={() => handleAuth("login")}
+                className="text-sm flex-1 py-2 rounded-md bg-primary text-black"
               >
                 Sign in
               </button>
               <button
-                onClick={() => {
-                  navigate("/signup");
-                  onClose();
-                }}
-                className="flex-1 py-2 rounded-md border"
+                onClick={() => handleAuth("register")}
+                className="text-sm flex-1 py-2 rounded-md border"
               >
                 Sign up
               </button>

@@ -1,14 +1,27 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useAuth } from "../../../hooks/useAuth";
+import { useToast } from "../../../context/ToastManager";
+import { useNavigate } from 'react-router-dom'
 
-const ReviewStep = ({
-  variants,
-  review,
-  role,
-  submitRegistration,
-  submitting,
-  back,
-}) => {
+const ReviewStep = ({ variants, review, role, data,  back }) => {
+  const { register, loading } = useAuth();
+  const { addToast } = useToast();
+  const navigate=useNavigate()
+
+  const submitRegistration = async () => {
+    // if (!validateStep(step)) return;
+    try {
+const res = await register(data);
+navigate("/auth/verify-notice", { state: { email: data.email } });
+
+      addToast(res.message || "Account created successfully", "success");
+    } catch (err) {
+      addToast(err.response?.data?.message || "error occured", "error", { duration: 6000 });
+      console.log(err);
+    }
+  };
+
   return (
     <motion.div
       key="review"
@@ -77,14 +90,12 @@ const ReviewStep = ({
 
         <button
           onClick={submitRegistration}
-          disabled={submitting}
+          // disabled={submitting}
           className={`px-4 py-2 rounded-md font-semibold text-sm ${
-            submitting
-              ? "bg-gray-300 text-gray-600"
-              : "bg-primary text-secondary"
+            loading ? "bg-gray-300 text-gray-600" : "bg-primary text-secondary"
           }`}
         >
-          {submitting ? "Submitting..." : "Create account"}
+          {loading ? "Submitting..." : "Create account"}
         </button>
       </div>
     </motion.div>

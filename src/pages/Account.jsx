@@ -7,11 +7,14 @@ import { IoBriefcaseOutline } from "react-icons/io5";
 import { useToast } from "../context/ToastManager";
 import MainSection from "../section/account/MainSection";
 import { mockProfiles } from "../data/mockProfile";
+import { useAuth } from "../hooks/useAuth";
 
 export default function ProfilePage() {
   const [mode, setMode] = useState("user");
 
   const [profile, setProfile] = useState(mockProfiles[mode]);
+
+  const {user}=useAuth()
 
   const [coverImage, setCoverImage] = useState("");
   const [profileImage, setProfileImage] = useState(profile.photo);
@@ -118,17 +121,17 @@ export default function ProfilePage() {
             />
           </div>
           <div className="flex-1">
-            <ProfileCard profile={profile} openRoleModal={openRoleModal} />
+            <ProfileCard profile={user} openRoleModal={openRoleModal} />
           </div>
         </div>
       </div>
 
       {/* Profile Form */}
       <MainSection
-        profile={profile}
+        profile={user}
         handleChange={handleChange}
         handleSave={handleSave}
-        form={form}
+        form={user}
       />
 
       {/* Role Modal */}

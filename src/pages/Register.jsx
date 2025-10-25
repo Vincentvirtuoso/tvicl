@@ -13,6 +13,8 @@ import {
   RoleSelection,
 } from "../section/register";
 import { useRegisterForm } from "../hooks/useRegisterForm";
+import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../context/ToastManager";
 
 const DUMMY_AGENCIES = [
   {
@@ -124,20 +126,13 @@ const Register = () => {
     setStep,
   } = useRegisterForm();
 
+  const { register, loading } = useAuth();
+
+  const { addToast } = useToast();
+
   useEffect(() => {
     changeHeader(registerHeaderByRole[role]);
   }, [role]);
-
-  const [submitting, setSubmitting] = useState(false);
-
-  // form state
-
-  // agent/agency fields
-  const [agencyName, setAgencyName] = useState("");
-  const [joinMode, setJoinMode] = useState("code"); // code | search | create
-  const [agencyQuery, setAgencyQuery] = useState("");
-  const [agencySearchResults, setAgencySearchResults] =
-    useState(DUMMY_AGENCIES);
 
   // OTP simulation
   const [showOtp, setShowOtp] = useState(false);
@@ -146,22 +141,18 @@ const Register = () => {
   const [otpError, setOtpError] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
 
-  // simple validation errors
-
   useEffect(() => {
     // reset agency search results on query change (simulate)
-    if (!agencyQuery) {
-      setAgencySearchResults(DUMMY_AGENCIES);
+    if (!data.agencyQuery) {
+      updateField("agencySearchResults", DUMMY_AGENCIES);
       return;
     }
-    const q = agencyQuery.toLowerCase().trim();
-    setAgencySearchResults(
-      DUMMY_AGENCIES.filter(
-        (a) =>
-          a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q)
-      )
+    const q = data.agencyQuery.toLowerCase().trim();
+    const results = DUMMY_AGENCIES.filter(
+      (a) => a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q)
     );
-  }, [agencyQuery]);
+    updateField("agencySearchResults", results);
+  }, [data.agencyQuery]);
 
   useEffect(() => {
     let timer;
@@ -172,19 +163,26 @@ const Register = () => {
   }, [resendTimer]);
 
   // simulate registration
-  const submitRegistration = () => {
-    if (!validateStep(step)) return;
-    setSubmitting(true);
-    // simulate API call delay
-    setTimeout(() => {
-      setSubmitting(false);
-      // generate OTP
-      const code = String(Math.floor(100000 + Math.random() * 900000));
-      setOtpCode(code);
-      setShowOtp(true);
-      setResendTimer(60);
-      console.info("SIMULATED OTP:", code); // dev: OTP printed to console for testing
-    }, 1200);
+  const submitRegistration = async () => {
+    // if (!validateStep(step)) return;
+    alert("testing");
+    try {
+      const res = await register(data);
+
+      addToast(res.message || "Account created successfully", "success");
+
+      setTimeout(() => {
+        // generate OTP
+        const code = String(Math.floor(100000 + Math.random() * 900000));
+        setOtpCode(code);
+        setShowOtp(true);
+        setResendTimer(60);
+        console.info("SIMULATED OTP:", code);
+      }, 1200);
+    } catch (err) {
+      addToast(err.message || "error occured", "error");
+      console.log(err);
+    }
   };
 
   const verifyOtp = () => {
@@ -220,11 +218,11 @@ const Register = () => {
     experienceYears: data.experienceYears,
     agencyName:
       role === "agent"
-        ? joinMode === "create"
+        ? data.joinMode === "create"
           ? data.agencyName
           : data.agencyCode
           ? `Joined: ${data.agencyCode}`
-          : agencyName
+          : data.agencyName
         : data.agencyName,
     agencyAddress: data.agencyAddress,
     rcNumber: data.rcNumber,
@@ -301,7 +299,8 @@ const Register = () => {
               review={review}
               role={role}
               submitRegistration={submitRegistration}
-              submitting={submitting}
+              submitting={loading}
+              data={data}
               back={back}
             />
           )}

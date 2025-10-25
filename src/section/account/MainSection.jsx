@@ -69,7 +69,7 @@ const ProfileSection = ({ profile, form, handleChange, handleSave }) => {
       { label: "Description", name: "bio", type: "textarea" },
     ],
     user: [
-      { label: "Full Name", name: "name" },
+      { label: "Full Name", name: "fullName" },
       { label: "Email", name: "email" },
       { label: "Phone Number", name: "phone" },
       { label: "Location", name: "location" },
@@ -78,7 +78,7 @@ const ProfileSection = ({ profile, form, handleChange, handleSave }) => {
     ],
   };
 
-  const fields = modeFields[profile.mode?.toLowerCase()] || modeFields.user;
+  const fields = modeFields[profile.role?.toLowerCase()] || modeFields.user;
   const tabs = ["Details", "Activity", "Settings"];
 
   return (

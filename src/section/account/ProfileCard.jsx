@@ -26,7 +26,7 @@ const ProfileCardCompact = ({ profile, openRoleModal }) => {
     },
   };
 
-  const config = modeConfig[profile.mode?.toLowerCase()] || modeConfig.user;
+  const config = modeConfig[profile.role?.toLowerCase()] || modeConfig.user;
 
   // Fields per mode
   const fields = {
@@ -72,7 +72,7 @@ const ProfileCardCompact = ({ profile, openRoleModal }) => {
       {/* Name + Badge */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-700 truncate">
-          {profile.name}
+          {profile.fullName}
         </h2>
         <span
           onClick={openRoleModal}

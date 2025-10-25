@@ -19,6 +19,7 @@ import MiniCartDrawer from "../../section/cart/MiniCartDrawer";
 import logo from "/images/logo.png";
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { useScreen } from "../../hooks/useScreen";
+import { useAuth } from "../../hooks/useAuth";
 import NotificationPanel from "../dropdown/navbar/NotificationPanel";
 import ProfileDropdown from "../dropdown/navbar/ProfileDropdown";
 import MobileMenu from "../dropdown/navbar/MobileMenu";
@@ -31,6 +32,7 @@ const Navbar = () => {
   const { scrollY } = useScrollTracker();
   const { items } = useCart();
   const { isDesktop } = useScreen();
+  const { user, logout, loading } = useAuth()
 
   // UI state
   const [menuOpen, setMenuOpen] = useState(false);
@@ -39,7 +41,7 @@ const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [loadingAuth, setLoadingAuth] = useState(true);
-  const [user, setUser] = useState(null);
+  const [mockuser, setUser] = useState(null);
 
   const isScrolled = scrollY > 55;
 
@@ -92,6 +94,11 @@ const Navbar = () => {
     setUser(null);
     setProfileMenuOpen(false);
   }, []);
+  
+  const handleLogout=async ()=>{
+    await logout() 
+    setProfileMenuOpen(false);
+  }
 
   // close menus on Escape and outside click
   useEffect(() => {
@@ -101,6 +108,8 @@ const Navbar = () => {
         setProfileMenuOpen(false);
         setSearchOpen(false);
         setNotifOpen(false);
+        console.log(user);
+        
       }
     }
 
@@ -151,7 +160,7 @@ const Navbar = () => {
   const navLinks = [
     { label: "Home", to: "/" },
     { label: "Properties", to: "/property/list" },
-    { label: "Saved Properties", to: "/property/wishlist" },
+    { label: "Sell Properties", to: "/property/add" },
     { label: "Interior Decoration", to: "/interior-decoration" },
   ];
 
@@ -277,15 +286,6 @@ const Navbar = () => {
                 </span>
               </button>
             </div>
-
-            {/* contact */}
-            <button
-              onClick={() => handleNavigate("+2349087699874")}
-              aria-label="Contact site owner"
-              className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 transition-colors"
-            >
-              <FiPhone />
-            </button>
 
             {/* profile */}
             <div className="relative">

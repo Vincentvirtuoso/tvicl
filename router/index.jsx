@@ -11,6 +11,10 @@ import AccountPage from "../src/pages/Account";
 import AuthLayout from "../src/layouts/AuthLayout";
 import Login from "../src/pages/Login";
 import Register from "../src/pages/Register";
+import VerifyNotice from "../src/pages/auth/VerifyNotice";
+import VerifyEmail from "../src/pages/auth/VerifyEmail";
+import AddProperty from "../src/pages/AddProperty";
+import Auth from "../src/pages/Auth";
 
 const Router = createBrowserRouter([
   {
@@ -26,17 +30,14 @@ const Router = createBrowserRouter([
           { path: "list", element: <PropertyList /> },
           { path: ":id/details", element: <PropertyDetail /> },
           { path: "wishlist", element: <WishList /> },
+          { path: "add", element: <AddProperty /> },
         ],
       },
-      {
-        path: "auth",
-        element: <AuthLayout />,
-        children: [
-          { index: true, element: <Navigate to="login" replace /> },
-          { path: "login", element: <Login /> },
-          { path: "sign-up", element: <Register /> },
-        ],
-      },
+      { path: "auth/verify-notice", element: <VerifyNotice /> },
+
+      { path: "verify-email/:token", element: <VerifyEmail /> },
+
+      { path: "auth", element: <Auth /> },
       { path: "cart", element: <Cart /> },
       { path: "account", element: <AccountPage /> },
       { path: "*", element: <NotFound /> },
