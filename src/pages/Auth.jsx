@@ -174,7 +174,8 @@ const validate = () => {
       addToast(
         error.response?.data?.message ||
           "Auth failed. Check your data connetion and try again",
-        "error"
+        "error",
+        { duration: 6000}
       );
     }
 
