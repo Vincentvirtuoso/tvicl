@@ -49,8 +49,8 @@ const VerifyNotice = () => {
       >
         {/* Icon */}
         <div className="flex justify-center mb-4">
-          <div className="bg-blue-100 p-4 rounded-full shadow-sm">
-            <FiMail className="text-blue-600 text-3xl" />
+          <div className="bg-yellow-100 p-4 rounded-full shadow-sm">
+            <FiMail className="text-yellow-600 text-3xl" />
           </div>
         </div>
 
@@ -79,7 +79,7 @@ const VerifyNotice = () => {
             className={`w-full py-3 rounded-lg flex justify-center items-center gap-2 font-medium transition ${
               cooldown > 0
                 ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg"
+                : "bg-yellow-600 hover:bg-yellow-700 text-white shadow-md hover:shadow-lg"
             }`}
           >
             {loading?.resendVerification && (
@@ -99,7 +99,7 @@ const VerifyNotice = () => {
         <div className="mt-6 text-sm">
           <button               
           onClick={() => navigate("/auth", { state: { action: "login" } })}
-            className="flex items-center justify-center w-full gap-2 text-blue-600 hover:text-blue-700 hover:underline"
+            className="flex items-center justify-center w-full gap-2 text-yellow-600 hover:text-yellow-700 hover:underline"
           >
             <FiArrowLeft size={16} /> Back to Login
           </button>
