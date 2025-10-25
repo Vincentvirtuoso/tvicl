@@ -206,7 +206,7 @@ const validate = () => {
   // Register view (Split screen)
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
-      <div className="w-full bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2 h-screen">
+      <div className="w-full bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2 lg:h-screen">
         {/* LEFT: Banner */}
         <motion.div
           className="relative hidden lg:block h-screen z-1 sticky top-0"
@@ -255,7 +255,7 @@ const validate = () => {
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
-          className="p-5 h-screen overflow-y-auto"
+          className="p-5 lg:h-screen lg:overflow-y-auto"
         >
           <div className="max-w-lg mx-auto">
             <div className="flex items-center justify-between sm:flex-row flex-col gap-4">
@@ -643,8 +643,8 @@ const validate = () => {
                     Continue as guest
                   </button>
 
-                  <div className="flex items-center justify-between text-sm text-gray-500 mt-1">
-                    <div className="flex items-center gap-2 py-1.5 px-3 border border-primary rounded-full">
+                  <div className="flex md:items-center flex-col md:flex-row justify-between text-sm text-gray-500 mt-1 gap-3">
+                    <div className="flex items-center justify-center gap-2 py-2 px-4 border border-primary rounded-md">
                       <FcGoogle className="w-4 h-4" />
                       <button
                         type="button"
