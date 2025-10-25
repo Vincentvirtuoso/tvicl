@@ -9,7 +9,7 @@ function CopyButton({ textToCopy, toastPosition = "bottom-right" }) {
   const { addToast } = useToast();
 
   useEffect(() => {
-    if (!textToCopy) return;
+    if (!isCopied) return;
     addToast("Link copied", "success", {
       duration: 2500,
       position: toastPosition,
