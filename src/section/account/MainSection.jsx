@@ -82,7 +82,6 @@ const ProfileSection = ({ profile, form, handleChange, handleSave }) => {
   const tabs = ["Details", "Activity", "Settings"];
 
   return (
-    <div className="p-6 mt-16 relative z-10">
       <div className="">
         {/* Header + Mode Badge */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
@@ -174,7 +173,6 @@ const ProfileSection = ({ profile, form, handleChange, handleSave }) => {
           )}
         </div>
       </div>
-    </div>
   );
 };
 

@@ -13,6 +13,8 @@ import VerifyNotice from "../src/pages/auth/VerifyNotice";
 import VerifyEmail from "../src/pages/auth/VerifyEmail";
 import AddProperty from "../src/pages/AddProperty";
 import AccessDenied from "../src/pages/AccessDenied";
+import BecomeAgentOrAgency from "../src/pages/BecomeAgentOrAgency";
+import InteriorDecoration from "../src/pages/InteriorDecoration";
 import Auth from "../src/pages/Auth";
 import ProtectedRoute from "../src/components/ProtectedRoute";
 
@@ -39,15 +41,12 @@ const Router = createBrowserRouter([
           },
           {
             path: "add",
-            element: (
-              <ProtectedRoute allowedRoles={["agent", "admin", 'seller', 'estate', 'buyer']}>
-                <AddProperty />
-              </ProtectedRoute>
-            ),
+            element: <AddProperty />,
           },
-          
         ],
       },
+      { path: "become-agent-or-agency", element: <BecomeAgentOrAgency /> },
+      { path: "interior-decoration", element: <InteriorDecoration /> },
       { path: "auth/verify-notice", element: <VerifyNotice /> },
 
       { path: "verify-email/:token", element: <VerifyEmail /> },

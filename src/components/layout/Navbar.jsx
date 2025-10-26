@@ -25,6 +25,29 @@ import ProfileDropdown from "../dropdown/navbar/ProfileDropdown";
 import MobileMenu from "../dropdown/navbar/MobileMenu";
 
 const MOCK_AUTH_KEY = "mock_auth_user";
+const ROLE_ACTIONS = [
+  {
+    role: "estate",
+    label: "Switch to Estate Mode",
+    icon: <MdOutlineAddHomeWork className="text-lg" />,
+    color: "text-emerald-600",
+    bg: "hover:bg-emerald-50 hover:shadow-emerald-600",
+  },
+  {
+    role: "agent",
+    label: "Switch to Agent Mode",
+    icon: <IoBriefcaseOutline className="text-lg" />,
+    color: "text-indigo-600",
+    bg: "hover:bg-indigo-50 hover:shadow-indigo-600",
+  },
+  {
+    role: "buyer",
+    label: "Switch to Buyer Mode",
+    icon: <FaHandHoldingUsd className="text-lg" />,
+    color: "text-amber-600",
+    bg: "hover:bg-amber-50 hover:shadow-amber-600",
+  },
+];
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -32,7 +55,7 @@ const Navbar = () => {
   const { scrollY } = useScrollTracker();
   const { items } = useCart();
   const { isDesktop } = useScreen();
-  const { user, logout, loading } = useAuth()
+  const { user, logout, loading, updateRole } = useAuth()
 
   // UI state
   const [menuOpen, setMenuOpen] = useState(false);
@@ -43,8 +66,31 @@ const Navbar = () => {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [mockuser, setUser] = useState(null);
 
+  const requiresSolidBg = ['/unauthorized', '/become-agent-or-agency', '/interior-decoration']
+
   const isScrolled = scrollY > 55;
-  const isUnauthorized = pathname === '/unauthorized'
+  const isSolid = requiresSolidBg.includes(pathname)
+
+    const availableActions = user
+    ? ROLE_ACTIONS.filter((a) => {
+        const hasRole = user.roles?.includes(a.role);
+        const isActive = user.activeRole === a.role;
+        return !isActive;
+      })
+    : [];
+
+  // Handle switching or adding a role
+  const handleRoleSwitch = async (role) => {
+    try {
+      if (!user.roles.includes(role)) {
+        navigate('/become-agent-or-agency');
+      } else {
+        await updateRole({role: user.activeRole, makeActive: role });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Body lock only when mobile menu open
   useBodyScrollLock(
@@ -95,6 +141,11 @@ const Navbar = () => {
     setUser(null);
     setProfileMenuOpen(false);
   }, []);
+
+  const handleAuth = (action) => {
+    navigate("/auth", { state: { from: "mobile-menu", action } });
+    onClose();
+  };
   
   const handleLogout=async ()=>{
     await logout() 
@@ -206,8 +257,8 @@ const Navbar = () => {
       <motion.nav
         initial={false}
         animate={{
-          backgroundColor: isUnauthorized? "#fff" :isScrolled ? "#ffffff" : "rgba(255,255,255,0)",
-          boxShadow: isUnauthorized ? "0 6px 18px rgba(3,12,36,0.08)" : isScrolled
+          backgroundColor: isSolid ? "#fff" :isScrolled ? "#ffffff" : "rgba(255,255,255,0)",
+          boxShadow: isSolid ? "0 6px 18px rgba(3,12,36,0.08)" : isScrolled
             ? "0 6px 18px rgba(3,12,36,0.08)"
             : "0 0 0 rgba(0,0,0,0)",
         }}
@@ -216,7 +267,7 @@ const Navbar = () => {
       >
         <div
           className={`max-w-7xl mx-auto flex items-center justify-between px-4 lg:px-8 py-3 transition-colors duration-200 ${
-            isUnauthorized? "text-secondary" :isScrolled ? "text-black" : "text-white"
+            isSolid ? "text-secondary" :isScrolled ? "text-black" : "text-white"
           }`}
         >
           {/* left: logo */}
@@ -281,7 +332,7 @@ const Navbar = () => {
                 className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 transition-colors"
               >
                 <FiBell className="text-lg" />
-                <span className="absolute top-1 right-1 bg-rose-500 text-[10px] text-white rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="absolute top-1 right-1 bg-red-500 text-[10px] text-white rounded-full w-4 h-4 flex items-center justify-center">
                   4
                 </span>
               </button>
@@ -360,6 +411,7 @@ const Navbar = () => {
               actions={actions}
               loginMock={loginMock}
               logoutMock={logoutMock}
+              availableActions={availableActions} handleRoleSwitch={handleRoleSwitch}
             />
           )}
         </AnimatePresence>
@@ -373,7 +425,10 @@ const Navbar = () => {
               actions={actions}
               user={user}
               loginMock={loginMock}
-              logoutMock={logoutMock}
+              logout={handleLogout}
+              availableActions={availableActions} 
+              handleRoleSwitch={handleRoleSwitch}
+
             />
           )}
         </AnimatePresence>

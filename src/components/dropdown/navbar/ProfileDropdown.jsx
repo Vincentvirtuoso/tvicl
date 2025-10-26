@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../others/ActionButton";
 import Divider from "../../common/Divider";
+import { useAuth } from "../../../hooks/useAuth";
 
 const ProfileDropdown = ({
   user,
@@ -11,7 +12,11 @@ const ProfileDropdown = ({
   actions,
   loginMock,
   logoutMock,
+  availableActions, 
+  handleRoleSwitch
 }) => {
+  const { loading, updateProfile } = useAuth();
+
   const navigate = useNavigate();
   return (
     <motion.div
@@ -22,7 +27,7 @@ const ProfileDropdown = ({
       transition={{ type: "spring", stiffness: 120, damping: 22 }}
       className="w-80 bg-white rounded-lg shadow-lg p-4 z-40 relative text-gray-600"
     >
-      {loadingAuth ? (
+      {loading.getCurrentUser ? (
         <div className="flex items-center justify-center py-6">
           <Loader variant="spinner" size={36} label="" />
         </div>
@@ -31,14 +36,14 @@ const ProfileDropdown = ({
           {/* User Info */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
-              {user.name
+              {user.fullName
                 ?.split(" ")
                 .map((s) => s[0])
                 .slice(0, 2)
                 .join("")}
             </div>
             <div>
-              <div className="font-semibold">{user.name}</div>
+              <div className="font-semibold">{user.fullName}</div>
               <div className="text-xs text-gray-500">{user.email}</div>
             </div>
           </div>
@@ -52,12 +57,6 @@ const ProfileDropdown = ({
               My profile
             </button>
             <button
-              onClick={() => navigate("/account/settings")}
-              className="text-left text-sm"
-            >
-              Account settings
-            </button>
-            <button
               onClick={() => navigate("/property/wishlist")}
               className="text-left text-sm"
             >
@@ -66,18 +65,20 @@ const ProfileDropdown = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col items-center gap-2 pt-4 border-t border-gray-500/20">
-            {actions.map((a, i) => (
-              <ActionButton key={i} {...a} />
+          { availableActions.length > 0 && !user.isUnauthorized && <div className="flex flex-col items-center gap-2 py-4 border-y border-gray-500/20">
+            {availableActions.map((a, i) => (
+              <ActionButton
+                key={i}
+                {...a}
+                onClick={() => handleRoleSwitch(a.role)}
+              />
             ))}
-          </div>
-
-          <Divider margin="my-2" width="w-full" />
+          </div>}
 
           {/* Logout */}
           <button
             onClick={logoutMock}
-            className="w-full py-2 rounded-md bg-rose-500 text-white text-sm"
+            className="w-full py-2 rounded-md bg-red-500 text-white text-sm"
           >
             Sign out
           </button>

@@ -2,22 +2,15 @@ import React from "react";
 import { motion } from "framer-motion";
 import { NavLink, useNavigate } from "react-router-dom";
 import ActionButton from "../../others/ActionButton";
-import {useAuth} from "../../../hooks/useAuth";
+import { useAuth } from "../../../hooks/useAuth";
+import { MdOutlineAddHomeWork } from "react-icons/md";
+import { IoBriefcaseOutline } from "react-icons/io5";
+import { FaHandHoldingUsd } from "react-icons/fa";
 
-const MobileMenu = ({
-  navLinks,
-  onClose,
-  actions,
-  // user,
-  // loginMock,
-  // logoutMock,
-}) => {
+
+const MobileMenu = ({ navLinks, onClose, handleAuth, logout, availableActions, handleRoleSwitch }) => {
   const navigate = useNavigate();
-  const{ loading, user, logout }=useAuth();
-  const handleAuth = (action) => {
-    navigate("/auth", { state: { from: "mobile-menu", action } });
-    onClose();
-  };
+  const { loading, user, updateProfile } = useAuth();
 
   return (
     <motion.aside
@@ -30,35 +23,45 @@ const MobileMenu = ({
       aria-label="Mobile menu"
     >
       <nav className="flex flex-col gap-4 items-center">
-        <div className="flex flex-col gap-2 overflow-y-auto max-h-[calc(90vh-50px)] items-center">
+        {/* Nav links */}
+        <div className="flex flex-col gap-2 overflow-y-auto max-h-[calc(90vh-50px)] items-center w-full">
           {navLinks.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
               onClick={onClose}
-              className="py-2 px-3 rounded-md text-sm hover:text-primary"
+              className="py-2 px-3 rounded-md text-sm hover:text-primary w-full text-center"
             >
               {n.label}
             </NavLink>
           ))}
         </div>
 
-       {user && <div className="flex flex-col gap-2 border-t border-gray-500/20 pt-4 w-full items-center">
-          {actions.map((a, i) => (
-            <ActionButton key={i} {...a} />
-          ))}
-        </div>}
+        {/* Role switch/add CTAs */}
+        {user && availableActions.length > 0 && !user.isUnauthorized && (
+          <div className="flex flex-col gap-2 border-t border-gray-500/20 pt-4 w-full items-center">
+            {availableActions.map((a, i) => (
+              <ActionButton
+                key={i}
+                {...a}
+                onClick={() => handleRoleSwitch(a.role)}
+              />
+            ))}
+          </div>
+        )}
 
+        {/* Auth buttons / Logout */}
         <div className="flex gap-2 sticky bottom-0 w-full">
-          {user ? (
+          {user && !user.isUnauthorized ? (
             <button
               onClick={logout}
-              className="text-sm flex-1 py-2 rounded-md bg-rose-500 text-white"
+              className={`text-sm flex-1 py-2 rounded-md bg-red-500 text-white flex items-center justify-center ${loading.logout && 'bg-red-500/50'} hover:bg-red-500/80`}
             >
-              { loading.logout 
-                ? <div className="w-5 h-5 border-2 border-secondary border-t-transparent rounded-full animate-spin"/>
-                : 'Logout'
-              }
+              {loading.logout ? (
+                <div className="w-5 h-5 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+              ) : (
+                "Logout"
+              )}
             </button>
           ) : (
             <>

@@ -3,8 +3,25 @@ import React from "react";
 import { FiCheckCircle, FiHome, FiSearch, FiShield, FiUsers, } from "react-icons/fi";
 import { FaHeadset } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { useAuth } from '../hooks/useAuth'
+import { useNavigate } from "react-router-dom";
 
 const AddProperty = () => {
+
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  const allowedRoles = ['agent', 'estate']
+  const canListHomes = user.roles?.some(u=> allowedRoles.includes(u))
+
+  if (canListHomes) {
+    return (
+      <div>
+        <h2>Add your home here</h2>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 space-y-20">
       {/* Hero Section */}
@@ -43,13 +60,13 @@ const AddProperty = () => {
         className="space-y-10"
       >
         <h2 className="text-3xl font-bold text-gray-800 text-center">How It Works</h2>
-        <ul className="flex flex-col md:flex-row gap-8 justify-center">
+        <ul className="grid sm:grid-cols-2 gap-8 justify-center">
           <motion.li
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             className="bg-white shadow-lg rounded-xl p-6 flex-1 flex flex-col items-center text-center"
           >
-            <FiHome className="text-4xl text-blue-500 mb-4" />
+            <FiHome className="text-4xl text-yellow-500 mb-4" />
             <b className="text-xl mb-2">Share Your Selling Goals</b>
             <p className="text-gray-600">Tell us about your home and what matters most to you.</p>
           </motion.li>
@@ -59,7 +76,7 @@ const AddProperty = () => {
             animate={{ opacity: 1, x: 0 }}
             className="bg-white shadow-lg rounded-xl p-6 flex-1 flex flex-col items-center text-center"
           >
-            <FiSearch className="text-4xl text-blue-500 mb-4" />
+            <FiSearch className="text-4xl text-yellow-500 mb-4" />
             <b className="text-xl mb-2">Browse Trusted Agents</b>
             <p className="text-gray-600">
               We match you with top local agents who have a history of successful sales in your area.
@@ -71,7 +88,8 @@ const AddProperty = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-3 bg-blue-500 text-white rounded-xl font-semibold shadow-lg hover:bg-blue-600 transition-colors"
+            onClick={()=> navigate('/become-agent-or-agency')}
+            className="px-8 py-3 bg-yellow-500 text-white rounded-xl font-semibold shadow-lg hover:bg-yellow-600 transition-colors"
           >
             Let’s Get Started
           </motion.button>
@@ -89,23 +107,23 @@ const AddProperty = () => {
         <p className="text-gray-600 text-center max-w-2xl mx-auto">
           We ensure your home selling experience is safe, transparent, and professional.
         </p>
-        <ul className="flex flex-col md:flex-row gap-8 justify-center">
+        <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           <li className="bg-white shadow-lg rounded-xl p-6 flex-1 flex flex-col items-center text-center">
-            <FiUsers className="text-4xl text-blue-500 mb-4" />
+            <FiUsers className="text-4xl text-yellow-500 mb-4" />
             <b className="text-xl mb-2">Verified Agents</b>
             <p className="text-gray-600">
               All agents are vetted through rigorous verification for professionalism.
             </p>
           </li>
           <li className="bg-white shadow-lg rounded-xl p-6 flex-1 flex flex-col items-center text-center">
-            <FiShield className="text-4xl text-blue-500 mb-4" />
+            <FiShield className="text-4xl text-yellow-500 mb-4" />
             <b className="text-xl mb-2">Transparent Process</b>
             <p className="text-gray-600">
               Stay informed at every step with our transparent communication tools.
             </p>
           </li>
           <li className="bg-white shadow-lg rounded-xl p-6 flex-1 flex flex-col items-center text-center">
-            <FaHeadset className="text-4xl text-blue-500 mb-4" />
+            <FaHeadset className="text-4xl text-yellow-500 mb-4" />
             <b className="text-xl mb-2">Dedicated Support</b>
             <p className="text-gray-600">
               Our support team assists you throughout the selling journey.

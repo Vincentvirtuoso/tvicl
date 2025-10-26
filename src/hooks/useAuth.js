@@ -61,6 +61,9 @@ export const useAuth = () => {
       // Save user; token is via HTTP-only cookies
       saveUser(res.data.user);
 
+      console.log(res.data.user);
+      
+
       return res.data;
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -191,7 +194,7 @@ export const useAuth = () => {
     if (!user) throw new Error("Not authenticated");
     setLoadingState("updateRole", true);
     try {
-      const { data } = await axios.patch("/users/role", { role, makeActive });
+      const { data } = await axios.patch("/auth/role", { role, makeActive });
       saveUser({ ...user, roles: data.roles, activeRole: data.activeRole });
       return data;
     } finally {

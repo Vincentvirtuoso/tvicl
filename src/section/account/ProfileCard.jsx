@@ -1,26 +1,27 @@
 import { FaUserCheck, FaUserTimes, FaHandHoldingUsd } from "react-icons/fa";
+import { FiChevronDown } from "react-icons/fi";
 import { IoBriefcaseOutline } from "react-icons/io5";
 
 const ProfileCardCompact = ({ profile, openRoleModal }) => {
   // Role configuration for badge colors, labels, and icons
   const roleConfig = {
     buyer: {
-      badge: "bg-green-500 text-white",
+      badge: "border border-green-500/50 text-green-500",
       label: "Buyer",
       icon: <FaHandHoldingUsd />,
     },
     seller: {
-      badge: "bg-purple-500 text-white",
+      badge: "border border-purple-500/50 text-purple-500",
       label: "Seller",
       icon: <FaHandHoldingUsd />,
     },
     agent: {
-      badge: "bg-blue-500 text-white",
+      badge: "border border-blue-500/50 text-blue-500",
       label: "Agent",
       icon: <IoBriefcaseOutline />,
     },
     admin: {
-      badge: "bg-red-600 text-white",
+      badge: "border border-red-600/50 text-red-600",
       label: "Admin",
       icon: <FaUserCheck />,
     },
@@ -46,19 +47,16 @@ const ProfileCardCompact = ({ profile, openRoleModal }) => {
         >
           {config.icon}
           {config.label}
+          <FiChevronDown className='ml-2' />
         </span>
       </div>
 
       {/* User Info */}
-      <div className="mt-2 text-sm text-gray-700 space-y-1">
+      <div className="mt-1 text-sm text-gray-700 space-y-1">
         <p>
-          <strong>Email:</strong> {profile.email}
-        </p>
-        <p>
-          <strong>Phone:</strong> {profile.phone || "N/A"}
+          {profile.email}
         </p>
         <p className="flex items-center gap-2">
-          <strong>Status:</strong>{" "}
           {profile.verified ? (
             <span className="flex items-center gap-1 text-green-600">
               <FaUserCheck /> Verified
@@ -71,27 +69,34 @@ const ProfileCardCompact = ({ profile, openRoleModal }) => {
         </p>
 
         {/* All roles badges */}
-        <div className="flex flex-wrap gap-1 mt-1">
-          {profile.roles?.map((role) => {
-            const lower = role.toLowerCase();
-            const roleStyle = roleConfig[lower] || roleConfig.buyer;
-            const isActive = lower === activeRole;
-
-            return (
-              <span
-                key={role}
-                className={`px-2 py-1 text-xs rounded-full font-medium flex items-center gap-1 ${
-                  isActive
-                    ? `border-2 border-yellow-400 ${roleStyle.badge}`
-                    : roleStyle.badge.replace("text-white", "text-gray-100")
-                }`}
-              >
-                {roleStyle.icon}
-                {roleStyle.label}
-              </span>
-            );
-          })}
+        <div className="mt-3">
+          {profile.roles.includes("admin") ? null : (
+            <div className="flex flex-col gap-2">
+              <p className="text-xs italic text-gray-500">
+                Want to expand your account? You can become an Agent, or register as an Estate.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {!profile.roles.includes("agent") && (
+                  <button
+                    onClick={() => openRoleModal("agent")}
+                    className="px-3 py-1.5 rounded-md bg-secondary text-white text-sm hover:bg-secondary/80"
+                  >
+                    Become Agent
+                  </button>
+                )}
+                {!profile.roles.includes("estate") && (
+                  <button
+                    onClick={() => openRoleModal("estate")}
+                    className="px-3 py-1.5 rounded-md bg-emerald-600 text-white text-sm hover:bg-emerald-500"
+                  >
+                    Register Estate
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
+
       </div>
     </div>
   );
