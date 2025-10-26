@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   FiMenu,
   FiX,
@@ -6,7 +6,6 @@ import {
   FiShoppingCart,
   FiUser,
   FiBell,
-  FiPhone,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useScrollTracker } from "../../hooks/useScrollTracker";
@@ -24,7 +23,6 @@ import NotificationPanel from "../dropdown/navbar/NotificationPanel";
 import ProfileDropdown from "../dropdown/navbar/ProfileDropdown";
 import MobileMenu from "../dropdown/navbar/MobileMenu";
 
-const MOCK_AUTH_KEY = "mock_auth_user";
 const ROLE_ACTIONS = [
   {
     role: "estate",
@@ -55,7 +53,7 @@ const Navbar = () => {
   const { scrollY } = useScrollTracker();
   const { items } = useCart();
   const { isDesktop } = useScreen();
-  const { user, logout, loading, updateRole } = useAuth()
+  const { user, logout, updateRole } = useAuth();
 
   // UI state
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,17 +61,19 @@ const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [loadingAuth, setLoadingAuth] = useState(true);
-  const [mockuser, setUser] = useState(null);
 
-  const requiresSolidBg = ['/unauthorized', '/become-agent-or-agency', '/interior-decoration']
+  const requiresSolidBg = [
+    "/unauthorized",
+    "/become-agent-or-agency",
+    "/interior-decoration",
+  ];
 
   const isScrolled = scrollY > 55;
-  const isSolid = requiresSolidBg.includes(pathname)
+  const isSolid = requiresSolidBg.includes(pathname);
 
-    const availableActions = user
+  const availableActions = user
     ? ROLE_ACTIONS.filter((a) => {
-        const hasRole = user.roles?.includes(a.role);
+        // const hasRole = user.roles?.includes(a.role);
         const isActive = user.activeRole === a.role;
         return !isActive;
       })
@@ -83,9 +83,9 @@ const Navbar = () => {
   const handleRoleSwitch = async (role) => {
     try {
       if (!user.roles.includes(role)) {
-        navigate('/become-agent-or-agency');
+        navigate("/become-agent-or-agency");
       } else {
-        await updateRole({role: user.activeRole, makeActive: role });
+        await updateRole({ role: user.activeRole, makeActive: role });
       }
     } catch (err) {
       console.error(err);
@@ -97,60 +97,21 @@ const Navbar = () => {
     (menuOpen && !isDesktop) || notifOpen || (profileMenuOpen && isDesktop)
   );
 
-  // Mock auth load from localStorage (persisted)
-  useEffect(() => {
-    setLoadingAuth(true);
-    const t = setTimeout(() => {
-      const raw = localStorage.getItem(MOCK_AUTH_KEY);
-      if (raw) {
-        try {
-          setUser(JSON.parse(raw));
-        } catch (e) {
-          setUser(null);
-          console.log(e);
-        }
-      } else {
-        setUser(null);
-      }
-      setLoadingAuth(false);
-    }, 200); // small shimmer to avoid flicker
-    return () => clearTimeout(t);
-  }, []);
-
   useEffect(() => {
     if (searchOpen) {
       navigate("/property/list", { state: { isSearch: true } });
     }
   }, [searchOpen]);
 
-  const loginMock = useCallback(() => {
-    const fakeUser = {
-      id: "u_123",
-      name: "Jane Doe",
-      email: "jane@example.com",
-      avatar: null,
-      role: "agent",
-    };
-    localStorage.setItem(MOCK_AUTH_KEY, JSON.stringify(fakeUser));
-    setUser(fakeUser);
-    setProfileMenuOpen(false);
-  }, []);
-
-  const logoutMock = useCallback(() => {
-    localStorage.removeItem(MOCK_AUTH_KEY);
-    setUser(null);
-    setProfileMenuOpen(false);
-  }, []);
-
-  const handleAuth = (action) => {
+  const handleAuth = (action, onClose) => {
     navigate("/auth", { state: { from: "mobile-menu", action } });
     onClose();
   };
-  
-  const handleLogout=async ()=>{
-    await logout() 
+
+  const handleLogout = async () => {
+    await logout();
     setProfileMenuOpen(false);
-  }
+  };
 
   // close menus on Escape and outside click
   useEffect(() => {
@@ -161,7 +122,6 @@ const Navbar = () => {
         setSearchOpen(false);
         setNotifOpen(false);
         console.log(user);
-        
       }
     }
 
@@ -186,18 +146,6 @@ const Navbar = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDesktop]);
-
-  const handleNavigate = useCallback(
-    (path) => {
-      if (path.startsWith("+")) {
-        window.location.href = `tel:${path}`;
-      } else {
-        navigate(path);
-      }
-      setMenuOpen(false);
-    },
-    [navigate]
-  );
 
   const closeDropdowns = () => {
     setMenuOpen(false);
@@ -257,8 +205,14 @@ const Navbar = () => {
       <motion.nav
         initial={false}
         animate={{
-          backgroundColor: isSolid ? "#fff" :isScrolled ? "#ffffff" : "rgba(255,255,255,0)",
-          boxShadow: isSolid ? "0 6px 18px rgba(3,12,36,0.08)" : isScrolled
+          backgroundColor: isSolid
+            ? "#fff"
+            : isScrolled
+            ? "#ffffff"
+            : "rgba(255,255,255,0)",
+          boxShadow: isSolid
+            ? "0 6px 18px rgba(3,12,36,0.08)"
+            : isScrolled
             ? "0 6px 18px rgba(3,12,36,0.08)"
             : "0 0 0 rgba(0,0,0,0)",
         }}
@@ -267,7 +221,11 @@ const Navbar = () => {
       >
         <div
           className={`max-w-7xl mx-auto flex items-center justify-between px-4 lg:px-8 py-3 transition-colors duration-200 ${
-            isSolid ? "text-secondary" :isScrolled ? "text-black" : "text-white"
+            isSolid
+              ? "text-secondary"
+              : isScrolled
+              ? "text-black"
+              : "text-white"
           }`}
         >
           {/* left: logo */}
@@ -407,11 +365,9 @@ const Navbar = () => {
           {profileMenuOpen && isDesktop && (
             <ProfileDropdown
               user={user}
-              loadingAuth={loadingAuth}
               actions={actions}
-              loginMock={loginMock}
-              logoutMock={logoutMock}
-              availableActions={availableActions} handleRoleSwitch={handleRoleSwitch}
+              availableActions={availableActions}
+              handleRoleSwitch={handleRoleSwitch}
             />
           )}
         </AnimatePresence>
@@ -424,11 +380,10 @@ const Navbar = () => {
               onClose={() => setMenuOpen(false)}
               actions={actions}
               user={user}
-              loginMock={loginMock}
               logout={handleLogout}
-              availableActions={availableActions} 
+              availableActions={availableActions}
               handleRoleSwitch={handleRoleSwitch}
-
+              handleAuth={handleAuth}
             />
           )}
         </AnimatePresence>
