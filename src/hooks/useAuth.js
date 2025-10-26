@@ -5,8 +5,18 @@ export const useAuth = () => {
   // ------------------- State -------------------
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("tvicl_user");
-    return saved ? JSON.parse(saved) : null;
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        console.warn("Failed to parse saved user, resetting");
+        localStorage.removeItem("tvicl_user");
+        return null;
+      }
+    }
+    return null;
   });
+
 
   const [loading, setLoading] = useState({});
   const [error, setError] = useState(null);

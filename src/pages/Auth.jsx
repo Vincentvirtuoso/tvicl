@@ -139,48 +139,57 @@ const validate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const err = validate();
-    if (Object.keys(err).length) {
-      setErrors(err);
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length) {
+      setErrors(validationErrors);
       return;
     }
-    const resMessage = isRegister ? "Account created successfully" : "";
+
     try {
-      let res;
+      let response;
       if (isRegister) {
-        res = await register(form);
+        response = await register(form);
         navigate("/auth/verify-notice", { state: { email: form.email } });
-      } else {
-        res = await login(form);
-        // console.log(res);
-        
-        if (res.requiresVerification) {
-          const now = Date.now();
-          if (!lastResendTime || now - lastResendTime > 60000) { // 60 sec cooldown
-            await resendVerificationEmail(res.email);
-            setLastResendTime(now);
-          }
-          navigate("/auth/verify-notice", { state: { email: res.email } });
-          return;
-        }
-        navigate("/");
+        addToast("Account created successfully. Check your email to verify.", "success");
+        setShowSuccess(true);
+        return;
       }
 
-      addToast(res.message || resMessage, "success");
+      // LOGIN
+      response = await login(form);
 
-      if (isRegister) setShowSuccess(true);
+      addToast(response.message || "Logged in successfully", "success");
+      navigate("/"); // redirect after successful login
+
     } catch (error) {
-      console.log(error);
+      const data = error.response?.data;
+
+      // Handle unverified email
+      if (data?.requiresVerification) {
+        const now = Date.now();
+        if (!lastResendTime || now - lastResendTime > 60000) { // 60 sec cooldown
+          try {
+            await resendVerificationEmail(data.email);
+            setLastResendTime(now);
+            addToast("Verification email resent. Check your inbox.", "info");
+          } catch (resendErr) {
+            console.warn("Resend failed", resendErr);
+            addToast("Failed to resend verification email. Try again later.", "error");
+          }
+        }
+
+        navigate("/auth/verify-notice", { state: { email: data.email } });
+        return;
+      }
+
       addToast(
-        error.response?.data?.message ||
-          "Auth failed. Check your data connetion and try again",
+        data?.message || "Authentication failed. Check your connection and try again.",
         "error",
         { duration: 6000 }
       );
     }
-
-    // keep form intact for potential review
   };
+
 
   const handleGuest = () => {
     const guest = { id: "guest", name: "Guest", role: "guest" };
