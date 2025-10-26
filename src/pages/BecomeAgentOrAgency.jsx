@@ -1,14 +1,30 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { FiCheck, FiUpload, FiUser, FiMapPin, FiPhone, FiGlobe, FiFileText } from "react-icons/fi";
+import {
+  FiCheck,
+  FiUpload,
+  FiUser,
+  FiMapPin,
+  FiPhone,
+  FiGlobe,
+  FiFileText,
+} from "react-icons/fi";
 import { MdOutlineAddHomeWork } from "react-icons/md";
 import { IoBriefcaseOutline } from "react-icons/io5";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../context/ToastManager";
 
 const roles = [
-  { value: "agent", label: "Agent", icon: <IoBriefcaseOutline className="text-2xl" /> },
-  { value: "estate", label: "Estate", icon: <MdOutlineAddHomeWork className="text-2xl" /> },
+  {
+    value: "agent",
+    label: "Agent",
+    icon: <IoBriefcaseOutline className="text-2xl" />,
+  },
+  {
+    value: "estate",
+    label: "Estate",
+    icon: <MdOutlineAddHomeWork className="text-2xl" />,
+  },
 ];
 
 export default function BecomeAgentOrAgency() {
@@ -43,47 +59,71 @@ export default function BecomeAgentOrAgency() {
     if (!selectedRole) return addToast("Please select a role", "error");
 
     try {
-      const payload = {
-        role: selectedRole,
-        fullName: form.fullName,
-        phone: form.phone,
-        companyName: form.companyName,
-        estateName: form.estateName,
-        address: form.address,
-        website: form.website,
-        registrationNumber: form.registrationNumber,
-        // Handle estateLogo and verificationDoc via FormData or separate upload logic
-      };
-      await updateProfile(payload);
-      addToast(`${selectedRole === "agent" ? "Agent" : "Estate"} account created successfully`, "success");
+      const formData = new FormData();
+
+      // Common fields
+      formData.append("fullName", form.fullName);
+      formData.append("phone", form.phone);
+
+      if (form.verificationDoc) {
+        formData.append("verificationDoc", form.verificationDoc);
+      }
+
+      // Role-specific fields
+      if (selectedRole === "agent") {
+        formData.append("companyName", form.companyName);
+        formData.append("address", form.address);
+      } else if (selectedRole === "estate") {
+        formData.append("estateName", form.estateName);
+        formData.append("address", form.address);
+        formData.append("website", form.website);
+        formData.append("registrationNumber", form.registrationNumber);
+        if (form.estateLogo) {
+          formData.append("estateLogo", form.estateLogo);
+        }
+      }
+
+      // Send role info
+      formData.append("role", selectedRole);
+
+      await updateProfile(formData, true); // true indicates formData is being sent
+      addToast(
+        `${
+          selectedRole === "agent" ? "Agent" : "Estate"
+        } account created successfully`,
+        "success"
+      );
     } catch (err) {
       addToast(err.message || "Failed to update role", "error");
     }
   };
 
   return (
-    <div className='min-h-screen flex justify-center items-center'>
+    <div className="min-h-screen flex justify-center items-center">
       <motion.div
         className="px-6 py-24 max-w-5xl mx-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}>
+        exit={{ opacity: 0 }}
+      >
         {/* Hero Section */}
         <motion.div
           className="flex flex-col md:flex-row items-center gap-8 mb-12"
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}>
+          transition={{ duration: 0.5 }}
+        >
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-3xl font-bold mb-4">
               Become an Agent or Register Your Estate
             </h1>
             <p className="text-gray-600 mb-6">
-              Unlock advanced features like property listings, client management, estate promotion, and more. Fill out the form to get started.
+              Unlock advanced features like property listings, client
+              management, estate promotion, and more. Fill out the form to get
+              started.
             </p>
           </div>
           <div className="flex-1">
-            {/* Placeholder illustration */}
             <img
               src="/images/hero.jpeg"
               alt="Hero Illustration"
@@ -111,7 +151,9 @@ export default function BecomeAgentOrAgency() {
             >
               {r.icon}
               <span className="font-semibold">{r.label}</span>
-              {selectedRole === r.value && <FiCheck className="text-green-600 mt-1" />}
+              {selectedRole === r.value && (
+                <FiCheck className="text-green-600 mt-1" />
+              )}
             </button>
           ))}
         </motion.div>
@@ -121,7 +163,8 @@ export default function BecomeAgentOrAgency() {
           className="bg-white p-8 rounded-xl shadow-md space-y-4"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}>
+          transition={{ delay: 0.5 }}
+        >
           <div className="flex flex-col gap-4">
             {selectedRole === "estate" && (
               <>

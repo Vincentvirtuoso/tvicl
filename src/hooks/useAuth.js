@@ -17,7 +17,6 @@ export const useAuth = () => {
     return null;
   });
 
-
   const [loading, setLoading] = useState({});
   const [error, setError] = useState(null);
 
@@ -62,7 +61,6 @@ export const useAuth = () => {
       saveUser(res.data.user);
 
       console.log(res.data.user);
-      
 
       return res.data;
     } catch (err) {
@@ -170,7 +168,9 @@ export const useAuth = () => {
   const resetPassword = async (token, password) => {
     setLoadingState("resetPassword", true);
     try {
-      const res = await axios.post(`/auth/reset-password/${token}`, { password });
+      const res = await axios.post(`/auth/reset-password/${token}`, {
+        password,
+      });
       return res.data;
     } finally {
       setLoadingState("resetPassword", false);
@@ -186,6 +186,18 @@ export const useAuth = () => {
       return res.data;
     } finally {
       setLoadingState("updateProfile", false);
+    }
+  };
+
+  // ------------------- ADD PROFILE -------------------
+  const addProfile = async (data) => {
+    setLoadingState("addProfile", true);
+    try {
+      const res = await axios.post("/auth/add-profile", data);
+      saveUser(res.data.user);
+      return res.data;
+    } finally {
+      setLoadingState("addProfile", false);
     }
   };
 
@@ -206,7 +218,10 @@ export const useAuth = () => {
   const changePassword = async (currentPassword, newPassword) => {
     setLoadingState("changePassword", true);
     try {
-      const res = await axios.put("/auth/change-password", { currentPassword, newPassword });
+      const res = await axios.put("/auth/change-password", {
+        currentPassword,
+        newPassword,
+      });
       return res.data;
     } finally {
       setLoadingState("changePassword", false);
@@ -230,5 +245,6 @@ export const useAuth = () => {
     updateRole,
     changePassword,
     getCurrentUser,
+    addProfile,
   };
 };
