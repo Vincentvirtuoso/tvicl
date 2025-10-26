@@ -9,12 +9,12 @@ import NotFound from "../src/pages/NotFound";
 import WishList from "../src/pages/WishList";
 import AccountPage from "../src/pages/Account";
 import AuthLayout from "../src/layouts/AuthLayout";
-import Login from "../src/pages/Login";
-import Register from "../src/pages/Register";
 import VerifyNotice from "../src/pages/auth/VerifyNotice";
 import VerifyEmail from "../src/pages/auth/VerifyEmail";
 import AddProperty from "../src/pages/AddProperty";
+import AccessDenied from "../src/pages/AccessDenied";
 import Auth from "../src/pages/Auth";
+import ProtectedRoute from "../src/components/ProtectedRoute";
 
 const Router = createBrowserRouter([
   {
@@ -29,8 +29,23 @@ const Router = createBrowserRouter([
           { index: true, element: <Navigate to="list" replace /> },
           { path: "list", element: <PropertyList /> },
           { path: ":id/details", element: <PropertyDetail /> },
-          { path: "wishlist", element: <WishList /> },
-          { path: "add", element: <AddProperty /> },
+          {
+            path: "wishlist",
+            element: (
+              <ProtectedRoute>
+                <WishList />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "add",
+            element: (
+              <ProtectedRoute allowedRoles={["agent", "admin", 'seller', 'estate', 'buyer']}>
+                <AddProperty />
+              </ProtectedRoute>
+            ),
+          },
+          
         ],
       },
       { path: "auth/verify-notice", element: <VerifyNotice /> },
@@ -39,7 +54,15 @@ const Router = createBrowserRouter([
 
       { path: "auth", element: <Auth /> },
       { path: "cart", element: <Cart /> },
-      { path: "account", element: <AccountPage /> },
+      {
+        path: "account",
+        element: (
+          <ProtectedRoute>
+            <AccountPage />
+          </ProtectedRoute>
+        ),
+      },
+      { path: 'unauthorized', element: <AccessDenied /> },
       { path: "*", element: <NotFound /> },
     ],
   },

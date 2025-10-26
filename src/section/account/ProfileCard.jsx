@@ -1,97 +1,97 @@
-import { FaHandHoldingUsd } from "react-icons/fa";
-import { FiHome, FiMapPin } from "react-icons/fi";
+import { FaUserCheck, FaUserTimes, FaHandHoldingUsd } from "react-icons/fa";
 import { IoBriefcaseOutline } from "react-icons/io5";
-import { LuBadgeDollarSign } from "react-icons/lu";
-import { MdOutlineAddHomeWork } from "react-icons/md";
 
 const ProfileCardCompact = ({ profile, openRoleModal }) => {
-  const modeConfig = {
-    agent: {
-      bg: "bg-blue-50",
-      badge: "bg-blue-400 text-white",
-      icon: <IoBriefcaseOutline />,
-      label: "Agent",
-    },
-    estate: {
-      bg: "bg-yellow-50",
-      badge: "bg-yellow-400 text-black",
-      icon: <MdOutlineAddHomeWork />,
-      label: "Estate",
-    },
-    user: {
-      bg: "bg-green-50",
-      badge: "bg-green-400 text-white",
+  // Role configuration for badge colors, labels, and icons
+  const roleConfig = {
+    buyer: {
+      badge: "bg-green-500 text-white",
+      label: "Buyer",
       icon: <FaHandHoldingUsd />,
-      label: "User",
+    },
+    seller: {
+      badge: "bg-purple-500 text-white",
+      label: "Seller",
+      icon: <FaHandHoldingUsd />,
+    },
+    agent: {
+      badge: "bg-blue-500 text-white",
+      label: "Agent",
+      icon: <IoBriefcaseOutline />,
+    },
+    admin: {
+      badge: "bg-red-600 text-white",
+      label: "Admin",
+      icon: <FaUserCheck />,
     },
   };
 
-  const config = modeConfig[profile.role?.toLowerCase()] || modeConfig.user;
+  // Determine active role (fallback to first role if activeRole not set)
+  const activeRole =
+    profile.activeRole?.toLowerCase() || profile.roles?.[0]?.toLowerCase() || "buyer";
 
-  // Fields per mode
-  const fields = {
-    agent: [
-      { label: "ID", value: profile.agentId || "N/A" },
-      { label: "Properties", value: profile.propertiesManaged || 0 },
-      {
-        label: "Total Sales",
-        value: `\u20A6${profile.totalSales?.toLocaleString() || 0}`,
-      },
-      { label: "Email", value: profile.email || "N/A" },
-    ],
-    estate: [
-      {
-        label: "Location",
-        value: profile.location || "Unknown",
-        icon: <FiMapPin />,
-      },
-      { label: "Size", value: `${profile.size || "N/A"} acres` },
-      { label: "Listings", value: profile.listings || 0, icon: <FiHome /> },
-      {
-        label: "Avg Price",
-        value: `\u20A6${profile.avgPrice?.toLocaleString() || 0}`,
-        icon: <LuBadgeDollarSign />,
-      },
-      {
-        label: "Agents",
-        value: profile.manager || 0,
-        icon: <IoBriefcaseOutline />,
-      },
-    ],
-    user: [
-      { label: "Favorites", value: profile.favorites?.length || 0 },
-      { label: "Member Since", value: profile.joinedDate || "N/A" },
-      { label: "Location", value: profile.location || "Unknown" },
-      { label: "Recent Views", value: profile.recentViews?.length || 0 },
-      { label: "Active Requests", value: profile.activeRequests || 0 },
-    ],
-  };
+  const config = roleConfig[activeRole] || roleConfig.buyer;
 
   return (
-    <div className={`flex flex-col justify-center w-full`}>
-      {/* Name + Badge */}
+    <div className="flex flex-col justify-center w-full">
+      {/* Name + Active Role Badge */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-700 truncate">
+        <h2 className="text-lg font-semibold text-gray-800 truncate">
           {profile.fullName}
         </h2>
+
         <span
-          onClick={openRoleModal}
-          className={`px-2 py-1 text-xs rounded-full font-medium cursor-pointer ${config.badge} flex items-center gap-2`}
+          onClick={activeRole !== "admin" ? openRoleModal : undefined}
+          className={`px-2 py-1 text-xs rounded-full font-medium cursor-pointer flex items-center gap-1 ${config.badge}`}
         >
           {config.icon}
-          {profile.modeTitle || config.label}
+          {config.label}
         </span>
       </div>
 
-      {/* Mode-specific info */}
-      <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-700 items-center">
-        {fields[profile.mode?.toLowerCase() || "user"].map((f, i) => (
-          <div key={i} className="flex items-center gap-1">
-            {f.icon && f.icon}
-            <span className="font-medium">{f.label}:</span>{" "}
-            <span className="line-clamp-1">{f.value}</span>
-          </div>
-        ))}
+      {/* User Info */}
+      <div className="mt-2 text-sm text-gray-700 space-y-1">
+        <p>
+          <strong>Email:</strong> {profile.email}
+        </p>
+        <p>
+          <strong>Phone:</strong> {profile.phone || "N/A"}
+        </p>
+        <p className="flex items-center gap-2">
+          <strong>Status:</strong>{" "}
+          {profile.verified ? (
+            <span className="flex items-center gap-1 text-green-600">
+              <FaUserCheck /> Verified
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-red-500">
+              <FaUserTimes /> Not Verified
+            </span>
+          )}
+        </p>
+
+        {/* All roles badges */}
+        <div className="flex flex-wrap gap-1 mt-1">
+          {profile.roles?.map((role) => {
+            const lower = role.toLowerCase();
+            const roleStyle = roleConfig[lower] || roleConfig.buyer;
+            const isActive = lower === activeRole;
+
+            return (
+              <span
+                key={role}
+                className={`px-2 py-1 text-xs rounded-full font-medium flex items-center gap-1 ${
+                  isActive
+                    ? `border-2 border-yellow-400 ${roleStyle.badge}`
+                    : roleStyle.badge.replace("text-white", "text-gray-100")
+                }`}
+              >
+                {roleStyle.icon}
+                {roleStyle.label}
+              </span>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

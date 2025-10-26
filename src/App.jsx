@@ -3,17 +3,29 @@ import Navbar from "./components/layout/Navbar";
 import { Outlet, useLocation } from "react-router-dom";
 import Footer from "./components/layout/Footer";
 import ScrollToTop from "./components/common/ScrollToTop";
+import UnauthorizedModal from "./components/common/UnauthorizedModal";
+import { useAuth } from "./hooks/useAuth";
 
 const App = () => {
   const { pathname } = useLocation();
+  const { user } = useAuth();
+
+  const hideNavPaths = ["auth", "auth/verify-notice", "verify-email",];
+  const hideNav = hideNavPaths.some((path) => pathname.startsWith(`/${path}`));
+
   return (
     <>
       <ScrollToTop />
-      {!pathname.startsWith("/auth") && <Navbar />}
+
+      {/* Show navbar/footer normally */}
+      {!hideNav && <Navbar />}
       <div className="flex flex-col">
         <Outlet />
-        {!pathname.startsWith("/auth") && <Footer logo="/images/logo.png" />}
+        {!hideNav && <Footer logo="/images/logo.png" />}
       </div>
+
+      {/* Show non-closable modal if user is unauthorized */}
+      {user?.isUnauthorized && <UnauthorizedModal countdown={6} />}
     </>
   );
 };

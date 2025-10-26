@@ -10,10 +10,10 @@ const MobileMenu = ({
   actions,
   // user,
   // loginMock,
-  logoutMock,
+  // logoutMock,
 }) => {
   const navigate = useNavigate();
-  const{user}=useAuth()
+  const{ loading, user, logout }=useAuth();
   const handleAuth = (action) => {
     navigate("/auth", { state: { from: "mobile-menu", action } });
     onClose();
@@ -43,19 +43,22 @@ const MobileMenu = ({
           ))}
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-gray-500/20 pt-4 w-full items-center">
+       {user && <div className="flex flex-col gap-2 border-t border-gray-500/20 pt-4 w-full items-center">
           {actions.map((a, i) => (
             <ActionButton key={i} {...a} />
           ))}
-        </div>
+        </div>}
 
         <div className="flex gap-2 sticky bottom-0 w-full">
           {user ? (
             <button
-              onClick={logoutMock}
+              onClick={logout}
               className="text-sm flex-1 py-2 rounded-md bg-rose-500 text-white"
             >
-              Logout
+              { loading.logout 
+                ? <div className="w-5 h-5 border-2 border-secondary border-t-transparent rounded-full animate-spin"/>
+                : 'Logout'
+              }
             </button>
           ) : (
             <>

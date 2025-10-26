@@ -19,7 +19,7 @@ import { authHeader } from "../data/authHeader";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../context/ToastManager";
 
-const PRIMARY = "#1E90FF"; // user-chosen primary color
+const PRIMARY = "#1E90FF";
 
 function getPasswordChecks(password) {
   return {
@@ -206,8 +206,8 @@ const validate = () => {
 
   // Register view (Split screen)
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
-      <div className="w-full bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2 lg:h-screen">
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full overflow-hidden grid grid-cols-1 lg:grid-cols-2 lg:h-screen">
         {/* LEFT: Banner */}
         <motion.div
           className="relative hidden lg:block h-screen z-1 sticky top-0"
@@ -264,7 +264,10 @@ const validate = () => {
                 <img
                   src={logo}
                   alt="TVCIL"
-                  className="w-14 transition-all duration-300 hover:drop-shadow-[0_10px_20px_rgba(250,204,21,0.2)] rounded-full"
+                  className="w-15 transition-all duration-300 hover:drop-shadow-[0_10px_20px_rgba(250,204,21,0.2)] rounded-full cursor-pointer" onClick={()=>{
+                    if(state.from !== 'unauthorized'){
+                    navigate('/')
+                  }}}
                 />
                 <motion.div
                   key={view}
@@ -628,7 +631,7 @@ const validate = () => {
                     }`}
                   >
                     {loading.register || loading.login ? (
-                      <div className="w-5 h-5 border-2 border-secondary border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-5 h-5 border-2 border-secondary border-t-transparent rounded-full animate-spin"/>
                     ) : isRegister ? (
                       "Create account"
                     ) : (

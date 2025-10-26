@@ -44,6 +44,7 @@ const Navbar = () => {
   const [mockuser, setUser] = useState(null);
 
   const isScrolled = scrollY > 55;
+  const isUnauthorized = pathname === '/unauthorized'
 
   // Body lock only when mobile menu open
   useBodyScrollLock(
@@ -160,7 +161,6 @@ const Navbar = () => {
   const navLinks = [
     { label: "Home", to: "/" },
     { label: "Properties", to: "/property/list" },
-    { label: "Sell Properties", to: "/property/add" },
     { label: "Interior Decoration", to: "/interior-decoration" },
   ];
 
@@ -206,8 +206,8 @@ const Navbar = () => {
       <motion.nav
         initial={false}
         animate={{
-          backgroundColor: isScrolled ? "#ffffff" : "rgba(255,255,255,0)",
-          boxShadow: isScrolled
+          backgroundColor: isUnauthorized? "#fff" :isScrolled ? "#ffffff" : "rgba(255,255,255,0)",
+          boxShadow: isUnauthorized ? "0 6px 18px rgba(3,12,36,0.08)" : isScrolled
             ? "0 6px 18px rgba(3,12,36,0.08)"
             : "0 0 0 rgba(0,0,0,0)",
         }}
@@ -216,7 +216,7 @@ const Navbar = () => {
       >
         <div
           className={`max-w-7xl mx-auto flex items-center justify-between px-4 lg:px-8 py-3 transition-colors duration-200 ${
-            isScrolled ? "text-black" : "text-white"
+            isUnauthorized? "text-secondary" :isScrolled ? "text-black" : "text-white"
           }`}
         >
           {/* left: logo */}

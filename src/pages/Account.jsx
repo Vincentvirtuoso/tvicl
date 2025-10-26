@@ -1,40 +1,75 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiCamera, FiHome, FiCheck } from "react-icons/fi";
+import { FiCamera, FiCheck } from "react-icons/fi";
 import { LuBuilding } from "react-icons/lu";
 import ProfileCard from "../section/account/ProfileCard";
 import { IoBriefcaseOutline } from "react-icons/io5";
 import { useToast } from "../context/ToastManager";
 import MainSection from "../section/account/MainSection";
-import { mockProfiles } from "../data/mockProfile";
 import { useAuth } from "../hooks/useAuth";
 
+// --- Helper: map frontend labels to backend role values ---
+const ROLE_LABELS = [
+  { label: "Buyer / Renter", value: "buyer" },
+  { label: "Agent", value: "agent" },
+  { label: "Real Estate Agency", value: "seller" },
+];
+
 export default function ProfilePage() {
-  const [mode, setMode] = useState("user");
+  const { user, updateProfile, loading } = useAuth();
+  const { addToast: showToast } = useToast();
 
-  const [profile, setProfile] = useState(mockProfiles[mode]);
+  // local form state derived from `user` (single source of truth is backend/user)
+  const [form, setForm] = useState(() => ({
+    fullName: "",
+    email: "",
+    phone: "",
+    role: "buyer",
+    profilePhoto: "",
+    coverPhoto: "",
+    verified: false
+  }));
 
-  const {user}=useAuth()
-
-  const [coverImage, setCoverImage] = useState("");
-  const [profileImage, setProfileImage] = useState(profile.photo);
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState(profile);
   const [showRoleModal, setShowRoleModal] = useState(false);
+
+  // files & previews
   const fileInputRef = useRef(null);
   const coverInputRef = useRef(null);
-  const { addToast: showToast } = useToast();
+  const [profileFile, setProfileFile] = useState(null);
+  const [coverFile, setCoverFile] = useState(null);
+  const [profilePreview, setProfilePreview] = useState("");
+  const [coverPreview, setCoverPreview] = useState("");
+
+  // initialize form when user changes
+  useEffect(() => {
+    if (user) {
+      setForm((p) => ({
+        ...p,
+        fullName: user.fullName || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        role: user.role || "buyer",
+        profilePhoto: user.profilePhoto || "",
+        coverPhoto: user.coverPhoto || "",
+        verified: user.verified || false
+      }));
+      setProfilePreview(user.profilePhoto || "");
+      setCoverPreview(user.coverPhoto || "");
+    }
+  }, [user]);
+
+  // clean up object URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      if (profilePreview && profilePreview.startsWith("blob:")) URL.revokeObjectURL(profilePreview);
+      if (coverPreview && coverPreview.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
+    };
+  }, [profilePreview, coverPreview]);
 
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
-  }
-
-  function handleSave() {
-    setProfile(form);
-    setProfileImage(form.photo);
-    setIsEditing(false);
-    showToast("Profile updated", "success");
   }
 
   function triggerProfileUpload() {
@@ -44,30 +79,106 @@ export default function ProfilePage() {
   function handleProfilePick(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    // revoke previous blob
+    if (profilePreview && profilePreview.startsWith("blob:")) URL.revokeObjectURL(profilePreview);
     const url = URL.createObjectURL(file);
-    setForm((p) => ({ ...p, photo: url }));
+    setProfilePreview(url);
+    setProfileFile(file);
+    setForm((p) => ({ ...p, profilePhoto: url }));
   }
 
   function handleCoverUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (coverPreview && coverPreview.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
     const url = URL.createObjectURL(file);
-    setCoverImage(url);
+    setCoverPreview(url);
+    setCoverFile(file);
+    setForm((p) => ({ ...p, coverPhoto: url }));
+  }
+
+  // Upload helper: POST to a backend route that handles Cloudinary (recommended)
+  // Replace '/api/uploads' with your actual upload endpoint if different.
+  async function uploadFileToServer(file) {
+    if (!file) return null;
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const res = await fetch("/api/uploads", {
+        method: "POST",
+        body: fd,
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Upload failed: ${txt}`);
+      }
+      const data = await res.json();
+      // backend should return { url: "https://..." }
+      return data.url;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  // Save handler: upload images first (if any), then call updateProfile
+  async function handleSave() {
+    setIsEditing(false);
+    try {
+      let profilePhotoUrl = form.profilePhoto;
+      let coverPhotoUrl = form.coverPhoto;
+
+      // If user selected new files, upload them
+      if (profileFile) {
+        profilePhotoUrl = await uploadFileToServer(profileFile);
+      }
+      if (coverFile) {
+        coverPhotoUrl = await uploadFileToServer(coverFile);
+      }
+
+      const payload = {
+        fullName: form.fullName,
+        phone: form.phone,
+        // don't allow frontend to set role to 'admin' — that's reserved
+        role: form.role === "admin" ? user.role || "buyer" : form.role,
+        profilePhoto: profilePhotoUrl || "",
+        coverPhoto: coverPhotoUrl || "",
+      };
+
+      await updateProfile(payload);
+      showToast("Profile updated", "success");
+
+      // cleanup blob urls & local files
+      if (profilePreview && profilePreview.startsWith("blob:")) URL.revokeObjectURL(profilePreview);
+      if (coverPreview && coverPreview.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
+      setProfileFile(null);
+      setCoverFile(null);
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Failed to update profile", "error");
+      // revert editing state so user can try again
+      setIsEditing(true);
+    }
   }
 
   function openRoleModal() {
     setShowRoleModal(true);
   }
 
-  function selectRole(title, role) {
-    setForm((p) => ({ ...p, mode: role, modeTitle: title }));
+  function selectRole(label, value) {
+    // frontend shows readable label, but we store backend role value
+    setForm((p) => ({ ...p, role: value }));
   }
 
-  function confirmRole() {
-    setProfile((p) => ({ ...p, mode: form.mode, modeTitle: form.modeTitle }));
+  async function confirmRole() {
     setShowRoleModal(false);
-    showToast("Role updated");
-    setMode(form.mode);
+    try {
+      // Persist role change immediately for clarity
+      await updateProfile({ role: form.role });
+      showToast("Role updated", "success");
+    } catch (err) {
+      showToast(err.message || "Failed to update role", "error");
+    }
   }
 
   return (
@@ -76,10 +187,7 @@ export default function ProfilePage() {
       <div className="relative w-full h-60 lg:h-90 ">
         <div className="group w-full h-full">
           <img
-            src={
-              coverImage ||
-              "https://images.unsplash.com/photo-1501183638710-841dd1904471"
-            }
+            src={coverPreview || "https://images.unsplash.com/photo-1501183638710-841dd1904471"}
             alt="cover"
             className="w-full h-full object-cover"
           />
@@ -101,7 +209,7 @@ export default function ProfilePage() {
         <div className="absolute -bottom-16 left-4 right-4 py-4 px-6 flex items-center gap-4 bg-slate-200 rounded-md">
           <div className="relative">
             <img
-              src={profileImage}
+              src={profilePreview || "/default-avatar.png"}
               alt="profile"
               className="w-22 h-22 rounded-full object-cover border-4 border-gray-600 shadow-lg"
             />
@@ -121,17 +229,20 @@ export default function ProfilePage() {
             />
           </div>
           <div className="flex-1">
-            <ProfileCard profile={user} openRoleModal={openRoleModal} />
+            <ProfileCard profile={form} openRoleModal={openRoleModal} />
           </div>
         </div>
       </div>
 
       {/* Profile Form */}
       <MainSection
-        profile={user}
+        profile={form}
         handleChange={handleChange}
         handleSave={handleSave}
-        form={user}
+        form={form}
+        isEditing={isEditing}
+        setIsEditing={setIsEditing}
+        saving={loading.updateProfile}
       />
 
       {/* Role Modal */}
@@ -153,29 +264,17 @@ export default function ProfilePage() {
               exit={{ y: 8, opacity: 0 }}
               className="relative z-10 max-w-md w-full bg-white rounded-2xl shadow-lg p-6"
             >
-              <h3 className="text-lg font-semibold mb-4">Select User Mode</h3>
+              <h3 className="text-lg font-semibold mb-4">Select Role</h3>
               <div className="flex flex-col gap-3">
-                <RoleOption
-                  id="agent"
-                  title="Real Estate Agent"
-                  icon={<IoBriefcaseOutline />}
-                  selected={form.modeTitle === "Real Estate Agent"}
-                  onClick={() => selectRole("Real Estate Agent", "agent")}
-                />
-                <RoleOption
-                  id="user"
-                  title="Buyer / Renter"
-                  icon={<FiHome />}
-                  selected={form.modeTitle === "Buyer / Renter"}
-                  onClick={() => selectRole("Buyer / Renter", "user")}
-                />
-                <RoleOption
-                  id="estate"
-                  title="Real Estate Agency"
-                  icon={<LuBuilding />}
-                  selected={form.modeTitle === "Real Estate Agency"}
-                  onClick={() => selectRole("Real Estate Agency", "estate")}
-                />
+                {ROLE_LABELS.map((r) => (
+                  <RoleOption
+                    key={r.value}
+                    title={r.label}
+                    icon={r.value === "agent" ? <IoBriefcaseOutline /> : <LuBuilding />}
+                    selected={form.role === r.value}
+                    onClick={() => selectRole(r.label, r.value)}
+                  />
+                ))}
               </div>
               <div className="mt-6 flex justify-end gap-3">
                 <button

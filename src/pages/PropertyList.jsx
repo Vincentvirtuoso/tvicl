@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiSearch } from "react-icons/fi";
 import PropertyCard from "../components/ui/PropertyCard";
@@ -9,6 +10,8 @@ const PropertyList = () => {
   const [sortBy, setSortBy] = useState("recent");
   const [filterType, setFilterType] = useState("All");
   const [filterCategory, setFilterCategory] = useState("All");
+
+  const navigate = useNavigate()
 
   const filteredProperties = useMemo(() => {
     let result = [...properties];
@@ -93,6 +96,10 @@ const PropertyList = () => {
             <option value="price-high">Price: High → Low</option>
           </select>
         </div>
+
+        <button onClick={()=>navigate('/property/add')}>
+          Add property
+        </button>
       </div>
 
       {/* Grid of Properties */}
