@@ -42,7 +42,7 @@ const UnauthorizedModal = ({ countdown = 5 }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center"
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-[90vw] p-8 text-center"
           >
             <FiAlertCircle className="text-red-500 text-6xl mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Session Expired / Unauthorized</h2>

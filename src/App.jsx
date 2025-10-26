@@ -13,6 +13,10 @@ const App = () => {
   const hideNavPaths = ["auth", "auth/verify-notice", "verify-email",];
   const hideNav = hideNavPaths.some((path) => pathname.startsWith(`/${path}`));
 
+  const protectedPaths = ["/account", "/properties", "/admin"]; 
+  const requiresAuth = protectedPaths.some((path) => pathname.startsWith(path));
+
+
   return (
     <>
       <ScrollToTop />
@@ -25,7 +29,7 @@ const App = () => {
       </div>
 
       {/* Show non-closable modal if user is unauthorized */}
-      {user?.isUnauthorized && <UnauthorizedModal countdown={6} />}
+      {user?.isUnauthorized && requiresAuth && pathname === '/' && <UnauthorizedModal countdown={6} />}
     </>
   );
 };
