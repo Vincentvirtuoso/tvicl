@@ -142,7 +142,7 @@ const Navbar = () => {
     setProfileMenuOpen(false);
   }, []);
 
-  const handleAuth = (action) => {
+  const handleAuth = (action, onClose) => {
     navigate("/auth", { state: { from: "mobile-menu", action } });
     onClose();
   };
