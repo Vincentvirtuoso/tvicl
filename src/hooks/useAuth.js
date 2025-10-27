@@ -30,7 +30,7 @@ export const useAuth = () => {
   };
 
   const clearUser = () => {
-    setUser(null);
+    setUser({ isUnauthorized: false });
     localStorage.removeItem("tvicl_user");
     delete axios.defaults.headers.common["Authorization"];
   };
@@ -143,14 +143,6 @@ export const useAuth = () => {
       }
     } finally {
       setLoadingState("getCurrentUser", false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const token = localStorage.getItem("tvicl_token");
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      getCurrentUser();
     }
   }, []);
 

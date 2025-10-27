@@ -1,3 +1,5 @@
+import { useLocation } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 import FullScreenLoader from "./common/FullScreenLoader";
 
 const PublicRoute = ({ children }) => {
@@ -14,5 +16,4 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-
-export default PublicRoute
+export default PublicRoute;

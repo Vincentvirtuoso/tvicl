@@ -4,8 +4,14 @@ import { NavLink, useNavigate } from "react-router-dom";
 import ActionButton from "../../others/ActionButton";
 import { useAuth } from "../../../hooks/useAuth";
 
-
-const MobileMenu = ({ navLinks, onClose, handleAuth, logout, availableActions, handleRoleSwitch }) => {
+const MobileMenu = ({
+  navLinks,
+  onClose,
+  handleAuth,
+  logout,
+  availableActions,
+  handleRoleSwitch,
+}) => {
   const navigate = useNavigate();
   const { loading, user, updateProfile } = useAuth();
 
@@ -49,10 +55,12 @@ const MobileMenu = ({ navLinks, onClose, handleAuth, logout, availableActions, h
 
         {/* Auth buttons / Logout */}
         <div className="flex gap-2 sticky bottom-0 w-full">
-          {user && !user.isUnauthorized ? (
+          {user?.isUnauthorized ? (
             <button
               onClick={logout}
-              className={`text-sm flex-1 py-2 rounded-md bg-red-500 text-white flex items-center justify-center ${loading.logout && 'bg-red-500/50'} hover:bg-red-500/80`}
+              className={`text-sm flex-1 py-2 rounded-md bg-red-500 text-white flex items-center justify-center ${
+                loading.logout && "bg-red-500/50"
+              } hover:bg-red-500/80`}
             >
               {loading.logout ? (
                 <div className="w-5 h-5 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
