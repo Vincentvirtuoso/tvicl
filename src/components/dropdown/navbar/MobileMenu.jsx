@@ -3,9 +3,6 @@ import { motion } from "framer-motion";
 import { NavLink, useNavigate } from "react-router-dom";
 import ActionButton from "../../others/ActionButton";
 import { useAuth } from "../../../hooks/useAuth";
-import { MdOutlineAddHomeWork } from "react-icons/md";
-import { IoBriefcaseOutline } from "react-icons/io5";
-import { FaHandHoldingUsd } from "react-icons/fa";
 
 
 const MobileMenu = ({ navLinks, onClose, handleAuth, logout, availableActions, handleRoleSwitch }) => {

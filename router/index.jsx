@@ -8,7 +8,6 @@ import PropertyList from "../src/pages/PropertyList";
 import NotFound from "../src/pages/NotFound";
 import WishList from "../src/pages/WishList";
 import AccountPage from "../src/pages/Account";
-import AuthLayout from "../src/layouts/AuthLayout";
 import VerifyNotice from "../src/pages/auth/VerifyNotice";
 import VerifyEmail from "../src/pages/auth/VerifyEmail";
 import AddProperty from "../src/pages/AddProperty";
@@ -17,6 +16,7 @@ import BecomeAgentOrAgency from "../src/pages/BecomeAgentOrAgency";
 import InteriorDecoration from "../src/pages/InteriorDecoration";
 import Auth from "../src/pages/Auth";
 import ProtectedRoute from "../src/components/ProtectedRoute";
+import PublicRoute from "../src/components/PublicRoute";
 
 const Router = createBrowserRouter([
   {
@@ -51,7 +51,14 @@ const Router = createBrowserRouter([
 
       { path: "verify-email/:token", element: <VerifyEmail /> },
 
-      { path: "auth", element: <Auth /> },
+      {
+        path: "auth",
+        element: (
+          <PublicRoute>
+            <Auth />
+          </PublicRoute>
+        ),
+      },
       { path: "cart", element: <Cart /> },
       {
         path: "account",
@@ -61,7 +68,7 @@ const Router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      { path: 'unauthorized', element: <AccessDenied /> },
+      { path: "unauthorized", element: <AccessDenied /> },
       { path: "*", element: <NotFound /> },
     ],
   },
