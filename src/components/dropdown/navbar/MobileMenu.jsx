@@ -57,7 +57,7 @@ const MobileMenu = ({
 
         {/* Auth buttons / Logout */}
         <div className="flex gap-2 sticky bottom-0 w-full mt-4 pt-2 border-t border-gray-500/20">
-          {!isLoggedIn ? (
+          {isLoggedIn ? (
             <>
               <button
                 onClick={() => handleAuth("login")}

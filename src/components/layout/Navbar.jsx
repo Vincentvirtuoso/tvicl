@@ -332,7 +332,7 @@ const Navbar = () => {
                 className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 transition-colors"
               >
                 <FiBell className="text-lg" />
-                <span className="absolute top-1 right-1 bg-red-500 text-[10px] text-white rounded-full w-4 h-4 flex items-center justify-center">
+                <span className="absolute top-1 right-1 bg-primary text-[10px] text-black rounded-full w-4 h-4 flex items-center justify-center">
                   4
                 </span>
               </button>
