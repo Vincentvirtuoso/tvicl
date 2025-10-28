@@ -14,6 +14,7 @@ import {
 import { MdOutlineAddHomeWork } from "react-icons/md";
 import { IoBriefcaseOutline } from "react-icons/io5";
 import { useEffect } from "react";
+import { useAuth } from "../hooks/useAuth";
 
 const roles = [
   {
@@ -42,6 +43,8 @@ export default function BecomeAgentOrAgency() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+
+  const { addProfile } = useAuth();
 
   const [form, setForm] = useState({
     fullName: "",
@@ -196,12 +199,9 @@ export default function BecomeAgentOrAgency() {
 
       formData.append("profileData", JSON.stringify(profileData));
 
-      const response = await fetch("/api/users/add-profile", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: formData,
+      const response = await addProfile({
+        rol: selectedRole,
+        profileData: formData,
       });
 
       const data = await response.json();

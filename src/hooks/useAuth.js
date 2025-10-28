@@ -30,7 +30,7 @@ export const useAuth = () => {
   };
 
   const clearUser = () => {
-    setUser({ isUnauthorized: false });
+    setUser(null);
     localStorage.removeItem("tvicl_user");
     delete axios.defaults.headers.common["Authorization"];
   };
