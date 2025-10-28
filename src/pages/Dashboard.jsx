@@ -278,11 +278,7 @@ const Dashboard = ({ role }) => {
   return (
     <div className="min-h-screen">
       <Hero
-        title={
-          role === "admin"
-            ? "Platform Analytics"
-            : `${role.charAt(0).toUpperCase() + role.slice(1)} Dashboard`
-        }
+        title={role === "admin" ? "Platform Analytics" : `My Dashboard`}
         subtitle={
           role === "admin"
             ? "Monitor platform-wide performance and activity metrics."

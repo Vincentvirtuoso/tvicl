@@ -196,7 +196,7 @@ const Navbar = () => {
     estate: [
       { label: "Dashboard", to: "/estate/dashboard" },
       { label: "My Properties", to: "/estate/properties" },
-      { label: "Maintenance", to: "/estate/maintenance" },
+      // { label: "Maintenance", to: "/estate/maintenance" },
     ],
     buyer: [...allUserLinks, { label: "My Investments", to: "/investments" }],
   };
