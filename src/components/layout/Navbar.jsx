@@ -174,9 +174,15 @@ const Navbar = () => {
     closeDropdowns();
   }, [pathname, user]);
 
+  const allowedRoles = ["agent", "estate"];
   const extraLinks = [
     { label: "Interior Decoration", to: "/interior-decoration" },
   ];
+  const conditionalLinks = user.roles.some((role) =>
+    allowedRoles.includes(role)
+  )
+    ? [{ label: "List/Sell Properties", to: "/property/add" }]
+    : [];
   const allUserLinks = [
     { label: "Home", to: "/" },
     { label: "Properties", to: "/property/list" },
@@ -224,8 +230,12 @@ const Navbar = () => {
 
   // merge role links if user exists
   const mergedNavLinks = user
-    ? [...(roleLinks[user.activeRole] || []), ...extraLinks]
-    : [...allUserLinks, ...extraLinks];
+    ? [
+        ...(roleLinks[user.activeRole] || []),
+        ...extraLinks,
+        ...conditionalLinks,
+      ]
+    : [...allUserLinks, ...extraLinks, ...conditionalLinks];
 
   /** Subcomponents */
   const NavLinkButton = ({ label, to }) => (

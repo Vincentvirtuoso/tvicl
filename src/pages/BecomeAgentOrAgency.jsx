@@ -16,6 +16,7 @@ import { IoBriefcaseOutline } from "react-icons/io5";
 import { useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useLocation } from "react-router-dom";
+import FileUpload from "../components/common/FileUpload";
 
 const roles = [
   {
@@ -280,7 +281,7 @@ export default function BecomeAgentOrAgency() {
           animate={{ opacity: 1, y: 0 }}
         >
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
-            Join Tvcil Today
+            Join TVICL Today
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Connect with clients, showcase properties, and grow your real estate
@@ -573,14 +574,16 @@ const AgentSection = ({
     />
 
     {/* Verification Documents */}
-    <UploadMultiple
+    <FileUpload
       label="Verification Documents"
       icon={<FiFileText className="text-yellow-600" />}
       fileName="verificationDocuments"
-      previews={preview.verificationDocuments}
-      handleFilePick={handleFilePick}
+      preview={preview.verificationDocuments}
+      handleFilesChange={handleFilePick}
       removeFile={removeFile}
       loading={loading}
+      minImages={2}
+      maxImages={4}
     />
   </>
 );
@@ -637,7 +640,7 @@ const EstateSection = ({
     </section>
 
     {/* Logo Upload */}
-    <UploadImage
+    <FileUpload
       label="Company Logo"
       icon={<FiImage className="text-yellow-600" />}
       fileName="estateLogo"
