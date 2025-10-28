@@ -63,7 +63,7 @@ export default function Auth() {
   const [fade, setFade] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const { register, login, loading,resendVerificationEmail } = useAuth();
+  const { register, login, loading, resendVerificationEmail } = useAuth();
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -90,42 +90,41 @@ export default function Auth() {
     [form.password]
   );
 
-const validate = () => {
-  const err = {};
+  const validate = () => {
+    const err = {};
 
-  // Common fields for both register and login
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    err.email = "Valid email is required";
-  }
-  if (!form.password.trim()) {
-    err.password = "Password is required";
-  }
+    // Common fields for both register and login
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      err.email = "Valid email is required";
+    }
+    if (!form.password.trim()) {
+      err.password = "Password is required";
+    }
 
-  // Extra validation only during REGISTER
-  if (isRegister) {
-    if (!form.fullName.trim()) {
-      err.fullName = "Full name is required";
+    // Extra validation only during REGISTER
+    if (isRegister) {
+      if (!form.fullName.trim()) {
+        err.fullName = "Full name is required";
+      }
+      if (!form.phone.trim()) {
+        err.phone = "Phone number is required";
+      }
+      if (form.password.length < 8) {
+        err.password = "Password must be at least 8 characters";
+      }
+      if (Object.values(pwdChecks).some((c) => !c)) {
+        err.password = "Password must meet all rules";
+      }
+      if (form.password !== form.confirm) {
+        err.confirm = "Passwords do not match";
+      }
+      if (!form.terms) {
+        err.terms = "You must accept terms & privacy";
+      }
     }
-    if (!form.phone.trim()) {
-      err.phone = "Phone number is required";
-    }
-    if (form.password.length < 8) {
-      err.password = "Password must be at least 8 characters";
-    }
-    if (Object.values(pwdChecks).some((c) => !c)) {
-      err.password = "Password must meet all rules";
-    }
-    if (form.password !== form.confirm) {
-      err.confirm = "Passwords do not match";
-    }
-    if (!form.terms) {
-      err.terms = "You must accept terms & privacy";
-    }
-  }
 
-  return err;
-};
-
+    return err;
+  };
 
   const handleChange = (field) => (e) => {
     const value = field === "terms" ? e.target.checked : e.target.value;
@@ -150,7 +149,10 @@ const validate = () => {
       if (isRegister) {
         response = await register(form);
         navigate("/auth/verify-notice", { state: { email: form.email } });
-        addToast("Account created successfully. Check your email to verify.", "success");
+        addToast(
+          "Account created successfully. Check your email to verify.",
+          "success"
+        );
         setShowSuccess(true);
         return;
       }
@@ -160,21 +162,24 @@ const validate = () => {
 
       addToast(response.message || "Logged in successfully", "success");
       navigate("/"); // redirect after successful login
-
     } catch (error) {
       const data = error.response?.data;
 
       // Handle unverified email
       if (data?.requiresVerification) {
         const now = Date.now();
-        if (!lastResendTime || now - lastResendTime > 60000) { // 60 sec cooldown
+        if (!lastResendTime || now - lastResendTime > 60000) {
+          // 60 sec cooldown
           try {
             await resendVerificationEmail(data.email);
             setLastResendTime(now);
             addToast("Verification email resent. Check your inbox.", "info");
           } catch (resendErr) {
             console.warn("Resend failed", resendErr);
-            addToast("Failed to resend verification email. Try again later.", "error");
+            addToast(
+              "Failed to resend verification email. Try again later.",
+              "error"
+            );
           }
         }
 
@@ -183,13 +188,13 @@ const validate = () => {
       }
 
       addToast(
-        data?.message || "Authentication failed. Check your connection and try again.",
+        data?.message ||
+          "Authentication failed. Check your connection and try again.",
         "error",
         { duration: 6000 }
       );
     }
   };
-
 
   const handleGuest = () => {
     const guest = { id: "guest", name: "Guest", role: "guest" };
@@ -273,10 +278,12 @@ const validate = () => {
                 <img
                   src={logo}
                   alt="TVCIL"
-                  className="w-15 transition-all duration-300 hover:drop-shadow-[0_10px_20px_rgba(250,204,21,0.2)] rounded-full cursor-pointer" onClick={()=>{
-                    if(state.from !== 'unauthorized'){
-                    navigate('/')
-                  }}}
+                  className="w-15 transition-all duration-300 hover:drop-shadow-[0_10px_20px_rgba(250,204,21,0.2)] rounded-full cursor-pointer"
+                  onClick={() => {
+                    if (state.from !== "unauthorized") {
+                      navigate("/");
+                    }
+                  }}
                 />
                 <motion.div
                   key={view}
@@ -604,26 +611,28 @@ const validate = () => {
                 )}
 
                 {/* Terms */}
-                <div className="flex items-start gap-3">
-                  <input
-                    id="terms"
-                    type="checkbox"
-                    checked={form.terms}
-                    onChange={handleChange("terms")}
-                    className="mt-1"
-                  />
-                  <label htmlFor="terms" className="text-sm text-gray-700">
-                    I agree to the{" "}
-                    <a href="#" className="text-[#1E90FF] underline">
-                      Terms of Service
-                    </a>{" "}
-                    and{" "}
-                    <a href="#" className="text-[#1E90FF] underline">
-                      Privacy Policy
-                    </a>
-                    .
-                  </label>
-                </div>
+                {isRegister && (
+                  <div className="flex items-start gap-3">
+                    <input
+                      id="terms"
+                      type="checkbox"
+                      checked={form.terms}
+                      onChange={handleChange("terms")}
+                      className="mt-1"
+                    />
+                    <label htmlFor="terms" className="text-sm text-gray-700">
+                      I agree to the{" "}
+                      <a href="#" className="text-[#1E90FF] underline">
+                        Terms of Service
+                      </a>{" "}
+                      and{" "}
+                      <a href="#" className="text-[#1E90FF] underline">
+                        Privacy Policy
+                      </a>
+                      .
+                    </label>
+                  </div>
+                )}
                 {errors.terms && (
                   <p className="text-xs text-red-500 mt-1">{errors.terms}</p>
                 )}
@@ -640,7 +649,7 @@ const validate = () => {
                     }`}
                   >
                     {loading.register || loading.login ? (
-                      <div className="w-5 h-5 border-2 border-secondary border-t-transparent rounded-full animate-spin"/>
+                      <div className="w-5 h-5 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
                     ) : isRegister ? (
                       "Create account"
                     ) : (

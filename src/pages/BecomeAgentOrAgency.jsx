@@ -15,6 +15,7 @@ import { MdOutlineAddHomeWork } from "react-icons/md";
 import { IoBriefcaseOutline } from "react-icons/io5";
 import { useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useLocation } from "react-router-dom";
 
 const roles = [
   {
@@ -39,7 +40,9 @@ const specializationsOptions = [
 ];
 
 export default function BecomeAgentOrAgency() {
-  const [selectedRole, setSelectedRole] = useState(null);
+  const { state } = useLocation();
+
+  const [selectedRole, setSelectedRole] = useState(state?.role || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -200,13 +203,9 @@ export default function BecomeAgentOrAgency() {
       formData.append("profileData", JSON.stringify(profileData));
 
       const response = await addProfile({
-        rol: selectedRole,
+        role: selectedRole,
         profileData: formData,
       });
-
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.message || "Failed to create profile");
 
       setSuccess(true);
       setTimeout(() => (window.location.href = "/dashboard"), 2000);

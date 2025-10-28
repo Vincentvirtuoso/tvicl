@@ -12,10 +12,15 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <FullScreenLoader />;
   }
 
-
   // 2️⃣ User not logged in
   if (!user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return (
+      <Navigate
+        to="/auth"
+        state={{ from: location, action: "login" }}
+        replace
+      />
+    );
   }
 
   // 3️⃣ User email not verified
@@ -24,7 +29,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   // 4️⃣ User role not allowed (if allowedRoles is provided)
-  if (allowedRoles && !user.roles?.some( u => allowedRoles.includes(u))) {
+  if (allowedRoles && !user.roles?.some((u) => allowedRoles.includes(u))) {
     return <Navigate to="/unauthorized" replace />;
   }
 

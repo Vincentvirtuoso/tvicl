@@ -17,6 +17,7 @@ import InteriorDecoration from "../src/pages/InteriorDecoration";
 import Auth from "../src/pages/Auth";
 import ProtectedRoute from "../src/components/ProtectedRoute";
 import PublicRoute from "../src/components/PublicRoute";
+import Dashboard from "../src/pages/Dashboard";
 
 const Router = createBrowserRouter([
   {
@@ -65,6 +66,30 @@ const Router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <AccountPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin/dashboard",
+        element: (
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <Dashboard role="admin" />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "agent/dashboard",
+        element: (
+          <ProtectedRoute allowedRoles={["agent"]}>
+            <Dashboard role="agent" />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "estate/dashboard",
+        element: (
+          <ProtectedRoute allowedRoles={["estate"]}>
+            <Dashboard role="estate" />
           </ProtectedRoute>
         ),
       },

@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import axios from "../api/axiosInstance";
+import axios, {
+  setRefreshHandler,
+  setUnauthorizedLogoutHandler,
+} from "../api/axiosInstance";
+import { useNavigate } from "react-router-dom";
 
 export const useAuth = () => {
   // ------------------- State -------------------
@@ -19,6 +23,7 @@ export const useAuth = () => {
 
   const [loading, setLoading] = useState({});
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const setLoadingState = (key, value) =>
     setLoading((prev) => ({ ...prev, [key]: value }));
@@ -81,6 +86,9 @@ export const useAuth = () => {
     } finally {
       clearUser();
       setLoadingState("logout", false);
+
+      // 👇 redirect user smoothly using React Router
+      navigate("/", { replace: true, state: { from: "logout" } });
     }
   };
 
@@ -113,15 +121,18 @@ export const useAuth = () => {
   };
 
   // ------------------- REFRESH TOKEN -------------------
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
   const refreshToken = async () => {
-    setLoadingState("refreshToken", true);
-    try {
-      await axios.post("/auth/refresh-token");
-    } catch {
-      logout();
-    } finally {
-      setLoadingState("refreshToken", false);
+    for (let i = 0; i < 3; i++) {
+      try {
+        await axios.post("/auth/refresh-token");
+        return;
+      } catch {
+        if (i < 2) await sleep(1000 * (i + 1)); // retry delay
+      }
     }
+    logout();
   };
 
   // ------------------- CURRENT USER -------------------
@@ -182,12 +193,19 @@ export const useAuth = () => {
   };
 
   // ------------------- ADD PROFILE -------------------
-  const addProfile = async (data) => {
+  const addProfile = async ({ role, profileData }) => {
     setLoadingState("addProfile", true);
     try {
-      const res = await axios.post("/auth/add-profile", data);
+      const res = await axios.post("/auth/add-profile", profileData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       saveUser(res.data.user);
       return res.data;
+    } catch (error) {
+      console.error("Error adding profile:", error);
+      throw error;
     } finally {
       setLoadingState("addProfile", false);
     }
@@ -219,6 +237,16 @@ export const useAuth = () => {
       setLoadingState("changePassword", false);
     }
   };
+
+  useEffect(() => {
+    setUnauthorizedLogoutHandler(() => {
+      logout();
+    });
+
+    setRefreshHandler(() => {
+      return refreshToken(); // must return a Promise
+    });
+  }, [logout, refreshToken]);
 
   // ------------------- Return Hook API -------------------
   return {

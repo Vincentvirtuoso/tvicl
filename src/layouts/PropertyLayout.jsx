@@ -1,7 +1,6 @@
 import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import SectionTitle from "../components/common/SectionTitle";
 import Hero from "../components/layout/Hero";
 
 const PropertyLayout = () => {

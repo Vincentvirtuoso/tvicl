@@ -2,7 +2,6 @@ import React from "react";
 import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
 import ActionButton from "../../others/ActionButton";
-import { useAuth } from "../../../hooks/useAuth";
 
 const MobileMenu = ({
   navLinks = [],
@@ -11,9 +10,9 @@ const MobileMenu = ({
   logout,
   availableActions = [],
   handleRoleSwitch,
+  loading,
+  user,
 }) => {
-  const { loading, user } = useAuth();
-
   // Determine if the user is logged in
   const isLoggedIn = user && !user.isUnauthorized;
 
@@ -50,6 +49,7 @@ const MobileMenu = ({
                 key={i}
                 {...action}
                 onClick={() => handleRoleSwitch(action.role)}
+                loading={loading.updateRole}
               />
             ))}
           </div>

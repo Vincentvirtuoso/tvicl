@@ -22,6 +22,7 @@ import { useAuth } from "../../hooks/useAuth";
 import NotificationPanel from "../dropdown/navbar/NotificationPanel";
 import ProfileDropdown from "../dropdown/navbar/ProfileDropdown";
 import MobileMenu from "../dropdown/navbar/MobileMenu";
+import { useToast } from "../../context/ToastManager";
 
 const ROLE_ACTIONS = [
   {
@@ -53,7 +54,8 @@ const Navbar = () => {
   const { scrollY } = useScrollTracker();
   const { items } = useCart();
   const { isDesktop } = useScreen();
-  const { user, logout, updateRole } = useAuth();
+  const { user, logout, updateRole, loading } = useAuth();
+  const { addToast } = useToast();
 
   // UI state
   const [menuOpen, setMenuOpen] = useState(false);
@@ -83,12 +85,27 @@ const Navbar = () => {
   const handleRoleSwitch = async (role) => {
     try {
       if (!user.roles.includes(role)) {
-        navigate("/become-agent-or-agency");
+        navigate("/become-agent-or-agency", { state: { role } });
       } else {
-        await updateRole({ role: user.activeRole, makeActive: role });
+        await updateRole({
+          role: user.activeRole,
+          makeActive: role,
+        });
+        addToast(
+          `You are now viewing as ${role === "buyer" ? "a" : "an"} ${role}`,
+          "info",
+          {
+            duration: 4000,
+          }
+        );
+
+        navigate(role === "buyer" ? "/" : `/${role}/dashboard`);
       }
     } catch (err) {
       console.error(err);
+      addToast(err.response.data.message, "error", {
+        duration: 6000,
+      });
     }
   };
 
@@ -155,13 +172,34 @@ const Navbar = () => {
 
   useEffect(() => {
     closeDropdowns();
-  }, [pathname]);
+  }, [pathname, user]);
 
-  const navLinks = [
-    { label: "Home", to: "/" },
-    { label: "Properties", to: "/property/list" },
+  const extraLinks = [
     { label: "Interior Decoration", to: "/interior-decoration" },
   ];
+  const allUserLinks = [
+    { label: "Home", to: "/" },
+    { label: "Properties", to: "/property/list" },
+  ];
+
+  // role-based dashboard links
+  const roleLinks = {
+    admin: [
+      { label: "Dashboard", to: "/admin/dashboard" },
+      { label: "Analytics", to: "/analytics" },
+    ],
+    agent: [
+      { label: "Dashboard", to: "/agent/dashboard" },
+      { label: "My Listings", to: "/agent/listings" },
+      { label: "Sales", to: "/agent/sales" },
+    ],
+    estate: [
+      { label: "Dashboard", to: "/estate/dashboard" },
+      { label: "My Properties", to: "/estate/properties" },
+      { label: "Maintenance", to: "/estate/maintenance" },
+    ],
+    buyer: [...allUserLinks, { label: "My Investments", to: "/investments" }],
+  };
 
   const actions = [
     {
@@ -183,6 +221,11 @@ const Navbar = () => {
       bg: "hover:bg-amber-50 hover:shadow-amber-600",
     },
   ];
+
+  // merge role links if user exists
+  const mergedNavLinks = user
+    ? [...(roleLinks[user.activeRole] || []), ...extraLinks]
+    : [...allUserLinks, ...extraLinks];
 
   /** Subcomponents */
   const NavLinkButton = ({ label, to }) => (
@@ -246,10 +289,9 @@ const Navbar = () => {
               </div>
             </div>
           </div>
-
           {/* center: nav links (desktop) */}
           <div className="hidden lg:flex items-center gap-6">
-            {navLinks.map((n) => (
+            {mergedNavLinks.map((n) => (
               <NavLinkButton key={n.to} {...n} />
             ))}
           </div>
@@ -376,10 +418,11 @@ const Navbar = () => {
         <AnimatePresence>
           {menuOpen && !isDesktop && (
             <MobileMenu
-              navLinks={navLinks}
+              navLinks={mergedNavLinks}
               onClose={() => setMenuOpen(false)}
               actions={actions}
               user={user}
+              loading={loading}
               logout={handleLogout}
               availableActions={availableActions}
               handleRoleSwitch={handleRoleSwitch}
