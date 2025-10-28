@@ -23,6 +23,29 @@ export const setRefreshHandler = (cb) => {
   onTryRefresh = cb;
 };
 
+// ---- Health Check Utility ----
+export const checkApiHealth = async () => {
+  try {
+    const res = await axios.get(
+      `${BASE_URL.replace(/\/api$/, "")}/api/health`,
+      {
+        timeout: 5000,
+      }
+    );
+
+    if (res.status === 200 && res.data.status === "Running ✅") {
+      console.log("✅ API Health: OK");
+      return { ok: true, data: res.data };
+    } else {
+      console.warn("⚠️ API Health Check: Unexpected response", res.data);
+      return { ok: false, data: res.data };
+    }
+  } catch (err) {
+    console.error("🚨 API Health Check Failed:", err.message);
+    return { ok: false, error: err.message };
+  }
+};
+
 // ---- 401 Interceptor ----
 let isRefreshing = false;
 let refreshSubscribers = [];
@@ -37,16 +60,13 @@ api.interceptors.response.use(
   async (err) => {
     const originalRequest = err.config;
 
-    // No response → network error
     if (!err.response) {
       console.warn("Network offline or server unreachable");
       return Promise.reject(err);
     }
 
-    // Handle 401 Unauthorized
     if (err.response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // Wait for refresh to finish
         return new Promise((resolve) => {
           refreshSubscribers.push(() => resolve(api(originalRequest)));
         });
@@ -57,10 +77,10 @@ api.interceptors.response.use(
 
       try {
         if (onTryRefresh) {
-          await onTryRefresh(); // call useAuth's refreshToken()
+          await onTryRefresh();
         }
         onRefreshed();
-        return api(originalRequest); // retry failed request
+        return api(originalRequest);
       } catch (refreshErr) {
         console.warn("Token refresh failed, logging out...");
         if (onUnauthorizedLogout) onUnauthorizedLogout();
