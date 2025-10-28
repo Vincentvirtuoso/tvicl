@@ -58,7 +58,7 @@ export const useAuth = () => {
       const res = await axios.post("/auth/login", data);
 
       // Save user; token is via HTTP-only cookies
-      saveUser(res.data.user);
+      saveUser({ ...res.data.user, isUnauthorized: false });
 
       console.log(res.data.user);
 
