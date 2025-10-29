@@ -8,19 +8,27 @@ const faqs = [
     questions: [
       {
         q: "Am I eligible to sell my property?",
-        a: "Yes. As long as you’re the verified owner or have authorization to represent the property, you can list it for sale on our platform.",
+        a: "Yes. As long as you’re the verified owner or have legal authorization to represent the property, you can list it on our platform. Verification may include proof of ownership, property documents, or authorization letters if acting on behalf of someone else.",
       },
       {
         q: "How do I list my property?",
-        a: "Simply sign in to your dashboard, navigate to 'List Property', fill in the details, upload images, and submit for verification.",
+        a: "Simply sign in to your agent or estate dashboard, navigate to 'List Property' in the menu, fill out key details such as title, location, price, and amenities, upload clear images, and submit for verification. Once approved, your listing becomes visible to potential buyers immediately.",
       },
       {
         q: "Are there any listing fees?",
-        a: "Listing is free, but we may charge a small commission once your property is successfully sold.",
+        a: "Listing your property is completely free. However, we may charge a small success commission once your property is sold. This ensures that you only pay when you get results — no upfront or hidden fees.",
       },
       {
         q: "Can I edit or remove my listing?",
-        a: "Yes. You can edit or unlist your property anytime from your dashboard without losing your existing data.",
+        a: "Yes. You can edit, update, or unlist your property anytime from your dashboard without losing your existing data or progress. Changes are reviewed and re-approved quickly to maintain listing integrity.",
+      },
+      {
+        q: "How long does property verification take?",
+        a: "Property verification typically takes 12–24 hours, depending on the completeness of your documents and image uploads. Our team manually reviews every submission to ensure quality and authenticity.",
+      },
+      {
+        q: "What kind of properties can I sell?",
+        a: "You can list residential, commercial, and land properties — including apartments, condos, bungalows, office spaces, and plots. Each category has tailored fields to make your listing stand out to the right buyers.",
       },
     ],
   },
@@ -29,19 +37,27 @@ const faqs = [
     questions: [
       {
         q: "How are agents verified?",
-        a: "All agents undergo a multi-step verification process including ID checks, license validation, and background screening.",
+        a: "All agents undergo a multi-step verification process that includes ID verification, license validation with local authorities, and background screening. Verified agents display a 'Verified Badge' on their profiles for transparency and trust.",
       },
       {
         q: "What if I’m not satisfied with an agent?",
-        a: "You can report an agent through your profile dashboard. Our team will review the case and ensure proper follow-up.",
+        a: "You can report an agent directly from your profile dashboard. Once reported, our review team investigates the case within 48 hours and takes appropriate actions — from mediation to account suspension for repeated offenses.",
       },
       {
         q: "Can I switch agents mid-process?",
-        a: "Absolutely. You can request a new agent if your current experience doesn’t meet your expectations.",
+        a: "Absolutely. If your current agent doesn’t meet your expectations, you can request a new agent anytime. Your property data remains intact, and the transition is seamless to avoid any disruption in your sale process.",
       },
       {
         q: "Do agents charge extra fees?",
-        a: "All agent fees are transparent and displayed upfront before engagement — no hidden costs.",
+        a: "Agent fees are transparent and displayed upfront before engagement. No hidden costs. Each agent defines their commission terms which are clearly shown before you confirm collaboration.",
+      },
+      {
+        q: "How do I become a verified agent?",
+        a: "Simply go to the 'Become Agent or Agency' page, complete your profile, upload your ID and license documents, and submit for verification. Once approved, you’ll gain access to your Agent Dashboard to list properties and manage clients.",
+      },
+      {
+        q: "Can an agent work under multiple estates?",
+        a: "No. Each agent account is tied to one verified estate at a time to maintain accountability and compliance. You can, however, request to transfer your affiliation if necessary through our support team.",
       },
     ],
   },
@@ -50,15 +66,52 @@ const faqs = [
     questions: [
       {
         q: "How do I find the right property?",
-        a: "Use our search filters to sort by price, location, property type, and amenities to find listings that match your preferences.",
+        a: "You can use our smart search filters to narrow down results by price range, location, number of bedrooms, property type, and available amenities. Each listing includes detailed descriptions, verified agent info, and high-quality photos to help you make informed decisions.",
       },
       {
         q: "Can I schedule a property tour?",
-        a: "Yes. Once you’re logged in, you can request an in-person or virtual tour directly through the property’s page.",
+        a: "Yes. Once logged in, you can request a property tour — either in-person or virtual. Our agents will coordinate with you to find a convenient time, ensuring a smooth and transparent viewing process.",
       },
       {
         q: "Is financing available?",
-        a: "We partner with mortgage providers to help eligible buyers access flexible financing options.",
+        a: "Yes. We partner with reputable mortgage providers to offer flexible financing options for eligible buyers. You can pre-check your eligibility and get connected to financing partners directly through your buyer dashboard.",
+      },
+      {
+        q: "How do I contact the seller or agent?",
+        a: "Each property page includes a secure contact form and messaging option that connects you directly to the admin before the verified agent or estate managing that property. Your contact details remain private until you choose to share them.",
+      },
+      {
+        q: "Can I make offers directly through the platform?",
+        a: "Yes. Our integrated offer system lets you submit, modify, or negotiate offers directly with verified agents. You’ll receive real-time notifications for counteroffers and updates.",
+      },
+      {
+        q: "What protections do I have as a buyer?",
+        a: "We only allow verified agents and estates on the platform, and every transaction is logged with digital timestamps. This ensures transparency and accountability throughout your property purchase journey.",
+      },
+    ],
+  },
+  {
+    category: "Platform & Safety",
+    questions: [
+      {
+        q: "How does the platform prevent fraud?",
+        a: "Every user (buyers, agents, and estates) undergoes an ID verification process before being allowed to transact. Properties are manually reviewed, and our systems flag suspicious listings or unusual behavior automatically.",
+      },
+      {
+        q: "Is my data secure?",
+        a: "Yes. We use store all sensitive information securely. We never share your personal data with third parties without your explicit consent.",
+      },
+      {
+        q: "Can I access the platform from my phone?",
+        a: "Yes. Our web app is fully mobile-optimized and works smoothly across all devices. A dedicated mobile app is also in development for an even faster experience.",
+      },
+      {
+        q: "Do you offer customer support?",
+        a: "Absolutely. Our dedicated support team is available 24/7 via chat and email. You can also access the Help Center for guides, FAQs, and step-by-step tutorials.",
+      },
+      {
+        q: "Are all property listings verified?",
+        a: "Yes. Every property listed on our platform goes through a manual verification process to ensure ownership authenticity, accurate descriptions, and compliance with local regulations.",
       },
     ],
   },

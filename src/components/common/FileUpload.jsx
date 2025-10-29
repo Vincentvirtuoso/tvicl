@@ -2,6 +2,8 @@ import { memo } from "react";
 import { FaStar } from "react-icons/fa";
 import { FiUpload } from "react-icons/fi";
 import { LuCamera, LuCircleCheck, LuFileText, LuX } from "react-icons/lu";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect } from "react";
 
 const FileUpload = ({
   icon,
@@ -18,14 +20,24 @@ const FileUpload = ({
   id,
   preview = [],
   errors = {},
-  uploadPlaceholder = "Click on the upload button to upload",
+  uploadPlaceholder = "Click to upload files",
   handleCaptionChange = null,
   handleFilesChange,
   loading = false,
   isCoverable = false,
   onSetPrimary = null,
 }) => {
+  // Ensure preview is always an array
+  const previewList = Array.isArray(preview)
+    ? preview.filter(Boolean)
+    : Object.values(preview || {});
   const isMultiple = maxFiles > 1;
+
+  // Disable upload if reached max files
+  const canUpload = !loading && previewList.length < maxFiles;
+  useEffect(() => {
+    console.log(preview);
+  }, [preview]);
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -44,11 +56,11 @@ const FileUpload = ({
           {description && (
             <p className="text-sm text-gray-600 mt-1">{description}</p>
           )}
-          {minFiles > 0 && (
-            <p className="text-xs text-gray-500 mt-1">
-              Minimum {minFiles} {minFiles === 1 ? "file" : "files"} required
-            </p>
-          )}
+          <p className="text-xs text-gray-500 mt-1">
+            {minFiles > 0 && `Minimum ${minFiles} `},
+            {maxFiles > 0 &&
+              `Maximum ${maxFiles} ${maxFiles === 1 ? "file" : "files"}`}
+          </p>
         </div>
 
         {progress === "complete" && (
@@ -63,14 +75,14 @@ const FileUpload = ({
       <label
         className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-colors
           ${
-            loading
+            !canUpload
               ? "bg-gray-300 cursor-not-allowed"
               : "bg-yellow-500 text-white hover:bg-yellow-600"
           }`}
       >
         {accept.includes("image") ? <LuCamera /> : <LuFileText />}
         <span>
-          {preview.length === 0
+          {previewList.length === 0
             ? "Upload"
             : `Add More ${isMultiple ? "Files" : ""}`}
         </span>
@@ -78,41 +90,48 @@ const FileUpload = ({
           type="file"
           multiple={isMultiple}
           accept={accept}
-          onChange={(e) => handleFilesChange(name, e)}
+          onChange={(e) =>
+            handleFilesChange({ name, e, maxFiles, multiple: isMultiple })
+          }
           className="hidden"
-          disabled={loading}
+          max={maxFiles}
+          disabled={!canUpload}
         />
       </label>
 
-      {errors[name] && (
+      {errors?.[name] && (
         <p className="text-red-500 text-sm mt-2">{errors[name]}</p>
       )}
 
       {/* Preview Grid */}
-      {preview.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-          {preview.map((file, idx) => (
-            <div
-              key={idx}
-              className="relative border-2 border-gray-200 rounded-lg overflow-hidden hover:border-yellow-400 transition-colors group"
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
+        <AnimatePresence>
+          {previewList.map((file, idx) => (
+            <motion.div
+              key={file?.url || file?.name || idx}
+              layout
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative border-2 border-gray-200 rounded-lg overflow-hidden hover:border-yellow-400 transition-colors group shadow-sm"
             >
               {/* Image/File preview */}
               {accept.includes("image") ? (
                 <img
-                  src={file.url}
+                  src={file?.url}
                   alt={`${label} ${idx + 1}`}
                   className="w-full h-40 object-cover"
                 />
               ) : (
                 <div className="w-full h-40 flex items-center justify-center bg-gray-100 text-gray-500">
-                  {file.name || `File ${idx + 1}`}
+                  {file?.name || `File ${idx + 1}`}
                 </div>
               )}
 
               {/* Remove button */}
               <button
                 type="button"
-                onClick={() => removeFile(name, idx)}
+                onClick={() => removeFile(name, maxFiles > 1 ? idx : null)}
                 className="absolute top-2 right-2 text-white bg-red-600 rounded-full p-2 hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                 title="Remove"
               >
@@ -139,7 +158,7 @@ const FileUpload = ({
                   <input
                     type="text"
                     placeholder="Add caption (optional)"
-                    value={file.caption || ""}
+                    value={file?.caption || ""}
                     onChange={(e) =>
                       handleCaptionChange(name, idx, e.target.value)
                     }
@@ -152,13 +171,13 @@ const FileUpload = ({
               <div className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
                 {idx + 1}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
-      )}
+        </AnimatePresence>
+      </div>
 
       {/* Empty state */}
-      {preview.length === 0 && (
+      {previewList.length === 0 && (
         <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hover:border-yellow-500 hover:bg-yellow-50 transition-all cursor-pointer group mt-4">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-yellow-100 transition-colors">
             <FiUpload className="text-3xl text-gray-400 group-hover:text-yellow-600 transition-colors" />

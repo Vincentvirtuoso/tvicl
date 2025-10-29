@@ -84,11 +84,11 @@ const Navbar = () => {
   // Handle switching or adding a role
   const handleRoleSwitch = async (role) => {
     try {
-      if (!user.roles.includes(role)) {
+      if (!user.roles?.includes(role)) {
         navigate("/become-agent-or-agency", { state: { role } });
       } else {
         await updateRole({
-          role: user.activeRole,
+          role: user?.activeRole,
           makeActive: role,
         });
         addToast(
@@ -99,7 +99,7 @@ const Navbar = () => {
           }
         );
 
-        navigate(role === "buyer" ? "/" : `/${role}/dashboard`);
+        window.location.href = role === "buyer" ? "/" : `/${role}/dashboard`;
       }
     } catch (err) {
       console.error(err);
@@ -178,7 +178,7 @@ const Navbar = () => {
   const extraLinks = [
     { label: "Interior Decoration", to: "/interior-decoration" },
   ];
-  const conditionalLinks = user.roles.some((role) =>
+  const conditionalLinks = user?.roles?.some((role) =>
     allowedRoles.includes(role)
   )
     ? [{ label: "List/Sell Properties", to: "/property/add" }]
@@ -198,6 +198,7 @@ const Navbar = () => {
       { label: "Dashboard", to: "/agent/dashboard" },
       { label: "My Listings", to: "/agent/listings" },
       { label: "Sales", to: "/agent/sales" },
+      { label: "Join Estate", to: "/agent/join-estate" },
     ],
     estate: [
       { label: "Dashboard", to: "/estate/dashboard" },

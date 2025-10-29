@@ -354,14 +354,17 @@ const Dashboard = ({ role }) => {
           {/* Left & Center: Charts (span 2 on large) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Trend + Regional charts */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Investment Trend (admin & agent and estate may be limited) */}
+            <div
+              className={`grid grid-cols-1 ${
+                role !== "estate" && "md:grid-cols-2"
+              } gap-6`}
+            >
               {(role === "admin" || role === "agent" || role === "estate") && (
                 <motion.div
                   variants={itemVariants}
                   initial="hidden"
                   animate="visible"
-                  className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100"
+                  className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 "
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -371,7 +374,7 @@ const Dashboard = ({ role }) => {
                           Investment Trend
                         </div>
                         <div className="text-lg font-semibold text-gray-900">
-                          Monthly token sales & investors
+                          Monthly sales & investors
                         </div>
                       </div>
                     </div>

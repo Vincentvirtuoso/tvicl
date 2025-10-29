@@ -327,6 +327,17 @@ export default function Auth() {
                 </button>
               </div>
             </div>
+            {state?.from?.pathname === "/become-agent-or-agency" && (
+              <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-2 mt-2 text-center">
+                <p>
+                  Please <span className="font-semibold">login</span> or{" "}
+                  <span className="font-semibold">create an account</span>{" "}
+                  before setting up an{" "}
+                  <span className="font-semibold">agent</span> or{" "}
+                  <span className="font-semibold">estate</span> profile.
+                </p>
+              </div>
+            )}
 
             <AnimatePresence mode="wait" initial={false}>
               <motion.form

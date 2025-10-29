@@ -7,17 +7,35 @@ import { useToast } from "../context/ToastManager";
 import ProfileCard from "../section/account/ProfileCard";
 import MainSection from "../section/account/MainSection";
 import { useAuth } from "../hooks/useAuth";
+import useAgent from "../hooks/useAgent";
 
 // Map frontend labels to backend role values
-const ROLE_LABELS = [
-  { label: "Buyer / Renter", value: "buyer" },
-  { label: "Agent", value: "agent" },
-  { label: "Real Estate Agency", value: "seller" },
-];
+const ROLE_LABELS = {
+  buyer: { label: "Buyer / Renter", value: "buyer" },
+  agent: { label: "Agent", value: "agent" },
+  estate: { label: "Real Estate Agency", value: "estate" },
+};
 
 export default function ProfilePage() {
-  const { user, updateProfile, loading } = useAuth();
+  const { user, updateProfile, loading, updateRole } = useAuth();
   const { addToast: showToast } = useToast();
+
+  const userRoles = user?.roles?.map((u) => {
+    return ROLE_LABELS[u];
+  });
+
+  const { agent } = useAgent();
+  const estate = { verified: false };
+
+  const isBuyer = user.activeRole === "buyer";
+  const isAgent = user.activeRole === "agent";
+  const isEstate = user.activeRole === "estate";
+
+  const roleBasedUser = isBuyer
+    ? user
+    : isAgent
+    ? { ...user, agent }
+    : { ...user, estate };
 
   // Form state
   const [form, setForm] = useState({
@@ -63,7 +81,8 @@ export default function ProfilePage() {
   // Clean up blob URLs
   useEffect(() => {
     return () => {
-      if (profilePreview.startsWith("blob:")) URL.revokeObjectURL(profilePreview);
+      if (profilePreview.startsWith("blob:"))
+        URL.revokeObjectURL(profilePreview);
       if (coverPreview.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
     };
   }, [profilePreview, coverPreview]);
@@ -145,12 +164,13 @@ export default function ProfilePage() {
   };
 
   const confirmRole = async () => {
-    setShowRoleModal(false);
     try {
-      await updateProfile({ activeRole: form.activeRole });
+      await updateRole({ role: user.activeRole, makeActive: form.activeRole });
       showToast("Active role updated", "success");
     } catch (err) {
       showToast(err.message || "Failed to update role", "error");
+    } finally {
+      setShowRoleModal(false);
     }
   };
 
@@ -161,13 +181,22 @@ export default function ProfilePage() {
       <div className="relative w-full h-60 lg:h-90">
         <div className="group w-full h-full">
           <img
-            src={coverPreview || "https://images.unsplash.com/photo-1501183638710-841dd1904471"}
+            src={
+              coverPreview ||
+              "https://images.unsplash.com/photo-1501183638710-841dd1904471"
+            }
             alt="cover"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/40" />
           <label className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer">
-            <input type="file" accept="image/*" ref={coverInputRef} onChange={handleCoverUpload} className="hidden" />
+            <input
+              type="file"
+              accept="image/*"
+              ref={coverInputRef}
+              onChange={handleCoverUpload}
+              className="hidden"
+            />
             <div className="text-white flex items-center gap-2">
               <FiCamera /> Change Cover
             </div>
@@ -182,13 +211,29 @@ export default function ProfilePage() {
               alt="profile"
               className="w-22 h-22 rounded-full object-cover border-4 border-gray-600 shadow-lg"
             />
-            <button onClick={triggerProfileUpload} className="absolute right-0 bottom-0 bg-primary p-2 rounded-full">
+            <button
+              onClick={triggerProfileUpload}
+              className="absolute right-0 bottom-0 bg-primary p-2 rounded-full"
+            >
               <FiCamera />
             </button>
-            <input type="file" accept="image/*" ref={fileInputRef} onChange={handleProfilePick} className="hidden" />
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleProfilePick}
+              className="hidden"
+            />
           </div>
           <div className="flex-1">
-            <ProfileCard profile={form} openRoleModal={openRoleModal} />
+            <ProfileCard
+              profile={form}
+              openRoleModal={openRoleModal}
+              user={roleBasedUser}
+              isBuyer={isBuyer}
+              isAgent={isAgent}
+              isEstate={isEstate}
+            />
           </div>
         </div>
       </div>
@@ -210,25 +255,40 @@ export default function ProfilePage() {
       <AnimatePresence>
         {showRoleModal && (
           <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setShowRoleModal(false)} />
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setShowRoleModal(false)}
+            />
             <motion.div className="relative z-10 max-w-md w-full bg-white rounded-2xl shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-4">Select Active Role</h3>
               <div className="flex flex-col gap-3">
-                {ROLE_LABELS.map((r) => (
+                {userRoles?.map((r) => (
                   <RoleOption
                     key={r.value}
                     title={r.label}
-                    icon={r.value === "agent" ? <IoBriefcaseOutline /> : <LuBuilding />}
+                    icon={
+                      r.value === "agent" ? (
+                        <IoBriefcaseOutline />
+                      ) : (
+                        <LuBuilding />
+                      )
+                    }
                     selected={form.activeRole === r.value}
                     onClick={() => selectRole(r.value)}
                   />
                 ))}
               </div>
               <div className="mt-6 flex justify-end gap-3">
-                <button onClick={() => setShowRoleModal(false)} className="px-4 py-1.5 text-sm rounded-md border border-secondary text-secondary">
+                <button
+                  onClick={() => setShowRoleModal(false)}
+                  className="px-4 py-1.5 text-sm rounded-md border border-secondary text-secondary"
+                >
                   Cancel
                 </button>
-                <button onClick={confirmRole} className="px-4 py-1.5 text-sm rounded-md bg-primary text-white">
+                <button
+                  onClick={confirmRole}
+                  className="px-4 py-1.5 text-sm rounded-md bg-primary text-white"
+                >
                   <FiCheck className="inline-block mr-2" /> Confirm
                 </button>
               </div>
@@ -242,8 +302,15 @@ export default function ProfilePage() {
 
 function RoleOption({ title, icon, selected, onClick }) {
   return (
-    <button onClick={onClick} className={`flex items-center gap-3 p-3 rounded-lg border ${selected ? "border-black/10 bg-gray-50" : "border-gray-100"} hover:shadow`}>
-      <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-white shadow">{icon}</div>
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-3 p-3 rounded-lg border ${
+        selected ? "border-black/10 bg-gray-50" : "border-gray-100"
+      } hover:shadow`}
+    >
+      <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-white shadow">
+        {icon}
+      </div>
       <div className="flex-1 text-left font-medium">{title}</div>
       <div>{selected ? <FiCheck /> : null}</div>
     </button>

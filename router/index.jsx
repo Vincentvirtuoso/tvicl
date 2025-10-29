@@ -46,7 +46,14 @@ const Router = createBrowserRouter([
           },
         ],
       },
-      { path: "become-agent-or-agency", element: <BecomeAgentOrAgency /> },
+      {
+        path: "become-agent-or-agency",
+        element: (
+          <ProtectedRoute>
+            <BecomeAgentOrAgency />
+          </ProtectedRoute>
+        ),
+      },
       { path: "interior-decoration", element: <InteriorDecoration /> },
       { path: "auth/verify-notice", element: <VerifyNotice /> },
 

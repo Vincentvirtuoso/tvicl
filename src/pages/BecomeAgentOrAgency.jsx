@@ -1,22 +1,14 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FiCheck,
-  FiUpload,
-  FiUser,
-  FiPhone,
-  FiFileText,
-  FiX,
-  FiImage,
-  FiAlertCircle,
-  FiBriefcase,
-} from "react-icons/fi";
+import { FiCheck, FiX, FiAlertCircle } from "react-icons/fi";
 import { MdOutlineAddHomeWork } from "react-icons/md";
 import { IoBriefcaseOutline } from "react-icons/io5";
 import { useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { useLocation } from "react-router-dom";
-import FileUpload from "../components/common/FileUpload";
+import { Navigate, useLocation } from "react-router-dom";
+import AgentSection from "../section/becomeAgentOrAgency/AgentSection";
+import CommonFields from "../section/becomeAgentOrAgency/CommonFields";
+import EstateSection from "../section/becomeAgentOrAgency/EstateSection";
 
 const roles = [
   {
@@ -48,7 +40,7 @@ export default function BecomeAgentOrAgency() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  const { addProfile } = useAuth();
+  const { addProfile, user, updateRole } = useAuth();
 
   const [form, setForm] = useState({
     fullName: "",
@@ -127,30 +119,54 @@ export default function BecomeAgentOrAgency() {
 
   // validate fields before submit
   const validateForm = () => {
-    if (!form.fullName.trim()) return "Full name is required";
-    if (!form.phone.trim()) return "Phone number is required";
-    if (!form.address.trim()) return "Address is required";
+    // Validation logic with messages
+    if (!form.fullName.trim())
+      return { field: "fullName", message: "Full name is required" };
+    if (!form.phone.trim())
+      return { field: "phone", message: "Phone number is required" };
+    if (!form.address.trim())
+      return { field: "address", message: "Address is required" };
 
     if (selectedRole === "agent") {
-      if (!form.licenseNumber.trim()) return "License number is required";
-      if (!form.agencyName.trim()) return "Agency name is required";
-      if (!form.yearsOfExperience) return "Years of experience is required";
+      if (!form.licenseNumber.trim())
+        return {
+          field: "licenseNumber",
+          message: "License number is required",
+        };
+      if (!form.agencyName.trim())
+        return { field: "agencyName", message: "Agency name is required" };
+      if (!form.yearsOfExperience)
+        return {
+          field: "yearsOfExperience",
+          message: "Years of experience is required",
+        };
       if (form.specializations.length === 0)
-        return "Please select at least one specialization";
+        return {
+          field: "specializations",
+          message: "Please select at least one specialization",
+        };
     }
 
     if (selectedRole === "estate") {
-      if (!form.estateName.trim()) return "Estate name is required";
-      if (!form.contactEmail.trim()) return "Contact email is required";
+      if (!form.estateName.trim())
+        return { field: "estateName", message: "Estate name is required" };
+      if (!form.contactEmail.trim())
+        return { field: "contactEmail", message: "Contact email is required" };
       if (!form.registrationNumber.trim())
-        return "Registration number is required";
+        return {
+          field: "registrationNumber",
+          message: "Registration number is required",
+        };
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(form.contactEmail))
-        return "Please enter a valid email address";
+        return {
+          field: "contactEmail",
+          message: "Please enter a valid email address",
+        };
     }
 
-    return null;
+    return null; // all good
   };
 
   // handle submission
@@ -161,7 +177,20 @@ export default function BecomeAgentOrAgency() {
     if (!selectedRole) return setError("Please select a role");
 
     const validationError = validateForm();
-    if (validationError) return setError(validationError);
+
+    if (validationError) {
+      const element = document.querySelector(
+        `[name="${validationError.field}"]`
+      );
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        element.focus({ preventScroll: true });
+      }
+
+      // Show the detailed message in the UI (toast, alert, or inline)
+      console.error(validationError.message);
+      return setError(validationError.message);
+    }
 
     try {
       setLoading(true);
@@ -208,8 +237,13 @@ export default function BecomeAgentOrAgency() {
         profileData: formData,
       });
 
+      await updateRole({ role: user.activeRole, makeActive: selectedRole });
+
       setSuccess(true);
-      setTimeout(() => (window.location.href = "/dashboard"), 2000);
+      setTimeout(
+        () => (window.location.href = `/${selectedRole}/dashboard`),
+        2000
+      );
     } catch (err) {
       console.error("Profile creation error:", err);
       setError(err.message || "Failed to create profile. Please try again.");
@@ -228,6 +262,10 @@ export default function BecomeAgentOrAgency() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [selectedRole]);
+
+  if (user?.roles?.some((r) => selectedRole?.includes(r))) {
+    return <Navigate to={`/${selectedRole}/dashboard`} replace />;
+  }
 
   return (
     <div className="min-h-screen mt-20">
@@ -373,6 +411,7 @@ export default function BecomeAgentOrAgency() {
                     handleChange={handleChange}
                     handleFilePick={handleFilePick}
                     removeFile={removeFile}
+                    specializationsOptions={specializationsOptions}
                   />
                 )}
 
@@ -440,347 +479,3 @@ export default function BecomeAgentOrAgency() {
     </div>
   );
 }
-
-/* ------------ SUBCOMPONENTS ------------ */
-
-const CommonFields = ({ form, handleChange, loading }) => (
-  <section className="space-y-6">
-    <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-      <FiUser className="text-yellow-600" /> Basic Information
-    </h4>
-    <div className="grid md:grid-cols-2 gap-6">
-      <Input
-        name="fullName"
-        label="Full Name"
-        required
-        value={form.fullName}
-        onChange={handleChange}
-        loading={loading}
-      />
-      <Input
-        name="phone"
-        label="Phone Number"
-        required
-        value={form.phone}
-        onChange={handleChange}
-        loading={loading}
-      />
-    </div>
-    <Input
-      name="address"
-      label="Address"
-      required
-      value={form.address}
-      onChange={handleChange}
-      loading={loading}
-    />
-  </section>
-);
-
-const Input = ({ name, label, required, value, onChange, loading }) => (
-  <div className="space-y-2">
-    <label className="block text-sm font-medium text-gray-700">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    <input
-      name={name}
-      value={value}
-      onChange={onChange}
-      placeholder={`Enter ${label.toLowerCase()}`}
-      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
-      disabled={loading}
-    />
-  </div>
-);
-
-/* ------------ AGENT SECTION ------------ */
-const AgentSection = ({
-  form,
-  preview,
-  loading,
-  handleChange,
-  handleFilePick,
-  removeFile,
-}) => (
-  <>
-    {/* Professional Details */}
-    <section className="space-y-6">
-      <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-        <FiBriefcase className="text-yellow-600" />
-        Professional Details
-      </h4>
-      <div className="grid md:grid-cols-2 gap-6">
-        <Input
-          name="licenseNumber"
-          label="License Number"
-          required
-          value={form.licenseNumber}
-          onChange={handleChange}
-          loading={loading}
-        />
-        <Input
-          name="agencyName"
-          label="Agency Name"
-          required
-          value={form.agencyName}
-          onChange={handleChange}
-          loading={loading}
-        />
-        <Input
-          name="yearsOfExperience"
-          label="Years of Experience"
-          required
-          value={form.yearsOfExperience}
-          onChange={handleChange}
-          loading={loading}
-        />
-      </div>
-
-      {/* Specializations */}
-      <div>
-        <p className="text-sm font-medium text-gray-700 mb-2">
-          Specializations <span className="text-red-500">*</span>
-        </p>
-        <div className="flex flex-wrap gap-3">
-          {specializationsOptions.map((spec) => (
-            <label
-              key={spec.value}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-yellow-50 transition-colors cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                name="specializations"
-                value={spec.value}
-                checked={form.specializations.includes(spec.value)}
-                onChange={handleChange}
-                disabled={loading}
-              />
-              <span className="text-gray-700 text-sm">{spec.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    {/* Profile Photo Upload */}
-    <UploadImage
-      label="Profile Photo"
-      icon={<FiImage className="text-yellow-600" />}
-      fileName="profilePhoto"
-      preview={preview.profilePhoto}
-      handleFilePick={handleFilePick}
-      removeFile={removeFile}
-      loading={loading}
-    />
-
-    {/* Verification Documents */}
-    <FileUpload
-      label="Verification Documents"
-      icon={<FiFileText className="text-yellow-600" />}
-      fileName="verificationDocuments"
-      preview={preview.verificationDocuments}
-      handleFilesChange={handleFilePick}
-      removeFile={removeFile}
-      loading={loading}
-      minImages={2}
-      maxImages={4}
-    />
-  </>
-);
-
-/* ------------ ESTATE SECTION ------------ */
-const EstateSection = ({
-  form,
-  preview,
-  loading,
-  handleChange,
-  handleFilePick,
-  removeFile,
-}) => (
-  <>
-    {/* Estate Details */}
-    <section className="space-y-6">
-      <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-        <FiBriefcase className="text-yellow-600" />
-        Estate Details
-      </h4>
-      <div className="grid md:grid-cols-2 gap-6">
-        <Input
-          name="estateName"
-          label="Estate Name"
-          required
-          value={form.estateName}
-          onChange={handleChange}
-          loading={loading}
-        />
-        <Input
-          name="contactEmail"
-          label="Contact Email"
-          required
-          value={form.contactEmail}
-          onChange={handleChange}
-          loading={loading}
-        />
-        <Input
-          name="registrationNumber"
-          label="Registration Number"
-          required
-          value={form.registrationNumber}
-          onChange={handleChange}
-          loading={loading}
-        />
-        <Input
-          name="website"
-          label="Website"
-          value={form.website}
-          onChange={handleChange}
-          loading={loading}
-        />
-      </div>
-    </section>
-
-    {/* Logo Upload */}
-    <FileUpload
-      label="Company Logo"
-      icon={<FiImage className="text-yellow-600" />}
-      fileName="estateLogo"
-      preview={preview.estateLogo}
-      handleFilePick={handleFilePick}
-      removeFile={removeFile}
-      loading={loading}
-    />
-
-    {/* Registration Documents */}
-    <UploadMultiple
-      label="Registration Documents"
-      icon={<FiFileText className="text-yellow-600" />}
-      fileName="registrationDocuments"
-      previews={preview.registrationDocuments}
-      handleFilePick={handleFilePick}
-      removeFile={removeFile}
-      loading={loading}
-    />
-  </>
-);
-
-/* ------------ UPLOAD COMPONENTS ------------ */
-const UploadImage = ({
-  label,
-  icon,
-  fileName,
-  preview,
-  handleFilePick,
-  removeFile,
-  loading,
-}) => (
-  <section className="space-y-6 mb-8">
-    <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-      {icon}
-      {label}
-    </h4>
-    <div className="space-y-4">
-      {!preview ? (
-        <label className="block">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFilePick(fileName)}
-            className="hidden"
-            disabled={loading}
-          />
-          <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center hover:border-yellow-500 hover:bg-yellow-50 transition-all cursor-pointer group">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-yellow-100 transition-colors">
-              <FiUpload className="text-3xl text-gray-400 group-hover:text-yellow-600 transition-colors" />
-            </div>
-            <p className="text-gray-700 font-medium mb-1">Click to upload</p>
-            <p className="text-sm text-gray-500">PNG, JPG, SVG up to 10MB</p>
-          </div>
-        </label>
-      ) : (
-        <div className="relative group">
-          <img
-            src={preview}
-            alt={`${label} preview`}
-            className="w-full h-64 object-contain bg-gray-50 rounded-xl border-2 border-gray-200"
-          />
-          {!loading && (
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-4">
-              <label className="cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFilePick(fileName)}
-                  className="hidden"
-                />
-                <div className="px-4 py-2 bg-white rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors">
-                  Change
-                </div>
-              </label>
-              <button
-                onClick={() => removeFile(fileName)}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium text-sm hover:bg-red-600 transition-colors"
-              >
-                Remove
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  </section>
-);
-
-const UploadMultiple = ({
-  label,
-  icon,
-  fileName,
-  previews,
-  handleFilePick,
-  removeFile,
-  loading,
-}) => (
-  <section className="space-y-6">
-    <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-      {icon}
-      {label}
-    </h4>
-    <label className="block">
-      <input
-        type="file"
-        accept="image/*,application/pdf"
-        multiple
-        onChange={handleFilePick(fileName, true)}
-        className="hidden"
-        disabled={loading}
-      />
-      <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-yellow-500 hover:bg-yellow-50 transition-all cursor-pointer">
-        <FiUpload className="text-4xl text-gray-400 mx-auto mb-3" />
-        <p className="text-gray-700 font-medium mb-1">
-          Upload {label.toLowerCase()}
-        </p>
-        <p className="text-sm text-gray-500">Multiple files allowed</p>
-      </div>
-    </label>
-    {previews?.length > 0 && (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {previews.map((src, i) => (
-          <div key={i} className="relative group">
-            <img
-              src={src}
-              alt={`${label} ${i + 1}`}
-              className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
-            />
-            {!loading && (
-              <button
-                onClick={() => removeFile(fileName, i)}
-                className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-              >
-                <FiX />
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-    )}
-  </section>
-);

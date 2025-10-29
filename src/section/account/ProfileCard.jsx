@@ -2,7 +2,14 @@ import { FaUserCheck, FaUserTimes, FaHandHoldingUsd } from "react-icons/fa";
 import { FiChevronDown } from "react-icons/fi";
 import { IoBriefcaseOutline } from "react-icons/io5";
 
-const ProfileCardCompact = ({ profile, openRoleModal }) => {
+const ProfileCardCompact = ({
+  profile,
+  openRoleModal,
+  user,
+  isBuyer,
+  isAgent,
+  isEstate,
+}) => {
   // Role configuration for badge colors, labels, and icons
   const roleConfig = {
     buyer: {
@@ -10,9 +17,9 @@ const ProfileCardCompact = ({ profile, openRoleModal }) => {
       label: "Buyer",
       icon: <FaHandHoldingUsd />,
     },
-    seller: {
+    estate: {
       badge: "border border-purple-500/50 text-purple-500",
-      label: "Seller",
+      label: "Estate Agency",
       icon: <FaHandHoldingUsd />,
     },
     agent: {
@@ -29,9 +36,16 @@ const ProfileCardCompact = ({ profile, openRoleModal }) => {
 
   // Determine active role (fallback to first role if activeRole not set)
   const activeRole =
-    profile.activeRole?.toLowerCase() || profile.roles?.[0]?.toLowerCase() || "buyer";
+    user.activeRole?.toLowerCase() || user.roles?.[0]?.toLowerCase() || "buyer";
 
   const config = roleConfig[activeRole] || roleConfig.buyer;
+
+  const showBadges = !user.roles.some((r) => ["agent", "estate"].includes(r));
+
+  const isVerified =
+    (isBuyer && user.verified) ||
+    (isAgent && user.agent?.verified) ||
+    (isEstate && user.estate?.verified);
 
   return (
     <div className="flex flex-col justify-center w-full">
@@ -45,19 +59,17 @@ const ProfileCardCompact = ({ profile, openRoleModal }) => {
           onClick={activeRole !== "admin" ? openRoleModal : undefined}
           className={`px-2 py-1 text-xs rounded-full font-medium cursor-pointer flex items-center gap-1 ${config.badge}`}
         >
-          {config.icon}
+          <span>{config.icon}</span>
           {config.label}
-          <FiChevronDown className='ml-2' />
+          <FiChevronDown className="ml-2" />
         </span>
       </div>
 
       {/* User Info */}
       <div className="mt-1 text-sm text-gray-700 space-y-1">
-        <p>
-          {profile.email}
-        </p>
+        <p>{profile.email}</p>
         <p className="flex items-center gap-2">
-          {profile.verified ? (
+          {isVerified ? (
             <span className="flex items-center gap-1 text-green-600">
               <FaUserCheck /> Verified
             </span>
@@ -69,34 +81,36 @@ const ProfileCardCompact = ({ profile, openRoleModal }) => {
         </p>
 
         {/* All roles badges */}
-        <div className="mt-3">
-          {profile.roles.includes("admin") ? null : (
-            <div className="flex flex-col gap-2">
-              <p className="text-xs italic text-gray-500">
-                Want to expand your account? You can become an Agent, or register as an Estate.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {!profile.roles.includes("agent") && (
-                  <button
-                    onClick={() => openRoleModal("agent")}
-                    className="px-3 py-1.5 rounded-md bg-secondary text-white text-sm hover:bg-secondary/80"
-                  >
-                    Become Agent
-                  </button>
-                )}
-                {!profile.roles.includes("estate") && (
-                  <button
-                    onClick={() => openRoleModal("estate")}
-                    className="px-3 py-1.5 rounded-md bg-emerald-600 text-white text-sm hover:bg-emerald-500"
-                  >
-                    Register Estate
-                  </button>
-                )}
+        {showBadges && (
+          <div className="mt-3">
+            {profile.roles.includes("admin") ? null : (
+              <div className="flex flex-col gap-2">
+                <p className="text-xs italic text-gray-500">
+                  Want to expand your account? You can become an Agent, or
+                  register as an Estate.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {!profile.roles.includes("agent") && (
+                    <button
+                      onClick={() => openRoleModal("agent")}
+                      className="px-3 py-1.5 rounded-md bg-secondary text-white text-sm hover:bg-secondary/80"
+                    >
+                      Become Agent
+                    </button>
+                  )}
+                  {!profile.roles.includes("estate") && (
+                    <button
+                      onClick={() => openRoleModal("estate")}
+                      className="px-3 py-1.5 rounded-md bg-emerald-600 text-white text-sm hover:bg-emerald-500"
+                    >
+                      Register Estate
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
