@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Hero from "../section/home/Hero";
 import ExclusiveProperties from "../section/home/ExclusiveProperties";
 import { useAuth } from "../hooks/useAuth";
