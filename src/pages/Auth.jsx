@@ -161,7 +161,13 @@ export default function Auth() {
       response = await login(form);
 
       addToast(response.message || "Logged in successfully", "success");
-      navigate("/"); // redirect after successful login
+      // After login or refresh
+      if (response?.user?.activeRole === "agent") navigate("/agent/dashboard");
+      else if (response?.user?.activeRole === "estate")
+        navigate("/estate/dashboard");
+      else if (response?.user?.activeRole === "admin")
+        navigate("/admin/dashboard");
+      else navigate("/");
     } catch (error) {
       const data = error.response?.data;
 

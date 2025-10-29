@@ -6,8 +6,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // 1️⃣ Show loading while fetching user data
-
+  // 1️⃣ Still loading user info
   if (loading.getCurrentUser) {
     return <FullScreenLoader />;
   }
@@ -24,13 +23,32 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   // 3️⃣ User email not verified
-  if (user && !user.verified) {
+  if (!user.verified) {
     return <Navigate to="/auth/verify-notice" replace />;
   }
 
-  // 4️⃣ User role not allowed (if allowedRoles is provided)
-  if (allowedRoles && !user.roles?.some((u) => allowedRoles.includes(u))) {
-    return <Navigate to="/unauthorized" replace />;
+  // 4️⃣ Role mismatch protection
+  if (allowedRoles) {
+    const hasAllowedRole = user.roles?.some((r) => allowedRoles.includes(r));
+
+    // User does not have the required role
+    if (!hasAllowedRole) {
+      return <Navigate to="/unauthorized" replace />;
+    }
+
+    // User has the role, but activeRole doesn't match
+    if (user?.activeRole && !allowedRoles.includes(user.activeRole)) {
+      return (
+        <Navigate
+          to="/unauthorized"
+          state={{
+            reason:
+              "Active role mismatch — please switch your active role to access this section.",
+          }}
+          replace
+        />
+      );
+    }
   }
 
   return children;
