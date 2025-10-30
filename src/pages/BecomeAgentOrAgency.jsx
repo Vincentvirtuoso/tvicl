@@ -9,6 +9,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import AgentSection from "../section/becomeAgentOrAgency/AgentSection";
 import CommonFields from "../section/becomeAgentOrAgency/CommonFields";
 import EstateSection from "../section/becomeAgentOrAgency/EstateSection";
+import { Loader } from "../components/common/Loader";
 
 const roles = [
   {
@@ -40,7 +41,7 @@ export default function BecomeAgentOrAgency() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  const { addProfile, user, updateRole } = useAuth();
+  const { addProfile, user } = useAuth();
 
   const [form, setForm] = useState({
     fullName: "",
@@ -232,12 +233,10 @@ export default function BecomeAgentOrAgency() {
 
       formData.append("profileData", JSON.stringify(profileData));
 
-      const response = await addProfile({
+      await addProfile({
         role: selectedRole,
         profileData: formData,
       });
-
-      await updateRole({ role: user.activeRole, makeActive: selectedRole });
 
       setSuccess(true);
       setTimeout(
@@ -435,28 +434,11 @@ export default function BecomeAgentOrAgency() {
                     className="w-full py-4 bg-gradient-to-r from-yellow-600 to-orange-600 text-white rounded-xl font-semibold text-lg hover:from-yellow-700 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     {loading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg
-                          className="animate-spin h-5 w-5"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                            fill="none"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                        Creating Account...
-                      </span>
+                      <Loader
+                        variant="spinner"
+                        size={20}
+                        label="Creating account..."
+                      />
                     ) : success ? (
                       <span className="flex items-center justify-center gap-2">
                         <FiCheck className="text-xl" />

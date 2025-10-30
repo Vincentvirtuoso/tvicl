@@ -1,6 +1,8 @@
 import { FaUserCheck, FaUserTimes, FaHandHoldingUsd } from "react-icons/fa";
 import { FiChevronDown } from "react-icons/fi";
+import { RiVerifiedBadgeLine } from "react-icons/ri";
 import { IoBriefcaseOutline } from "react-icons/io5";
+import { LuUserX } from "react-icons/lu";
 
 const ProfileCardCompact = ({
   profile,
@@ -68,14 +70,26 @@ const ProfileCardCompact = ({
       {/* User Info */}
       <div className="mt-1 text-sm text-gray-700 space-y-1">
         <p>{profile.email}</p>
-        <p className="flex items-center gap-2">
+        <p className="text-xs italic">
           {isVerified ? (
-            <span className="flex items-center gap-1 text-green-600">
-              <FaUserCheck /> Verified
+            <span className="flex items-center gap-1 text-green-600 font-medium">
+              <RiVerifiedBadgeLine className="text-sm" />
+              Verified
+              {user.activeRole && !isBuyer && (
+                <span className="ml-1 text-gray-500 font-normal">
+                  ({user.activeRole})
+                </span>
+              )}
             </span>
           ) : (
-            <span className="flex items-center gap-1 text-red-500">
-              <FaUserTimes /> Not Verified
+            <span className="flex items-center gap-1 text-red-500 font-medium">
+              <LuUserX className="text-sm" />
+              Not Verified
+              {user.activeRole && !isBuyer && (
+                <span className="ml-1 text-gray-500 font-normal">
+                  ({user.activeRole})
+                </span>
+              )}
             </span>
           )}
         </p>

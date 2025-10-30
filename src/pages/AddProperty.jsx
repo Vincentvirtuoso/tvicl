@@ -1,5 +1,4 @@
-// src/pages/AddProperty.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import {
   FiCheckCircle,
   FiHome,
@@ -10,23 +9,28 @@ import {
 import { FaHeadset } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PropertyListingForm from "./PropertyListingForm";
 import FAQ from "../section/addProperty/FAQ";
 import RoleSwitchNotice from "../components/common/RoleSwitchNotice";
+import { useRoleSwitch } from "../hooks/useRoleSwitch";
 
 const AddProperty = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { saveRedirect } = useRoleSwitch(user);
 
-  // Role checks
+  useEffect(() => {
+    saveRedirect(pathname);
+  }, [pathname, saveRedirect]);
+
   const allowedRoles = ["agent", "estate"];
   const canListHomes = allowedRoles.includes(user?.activeRole);
   const isBuyer = user?.activeRole === "buyer";
   const canSwitchRoles =
     isBuyer && user?.roles?.some((role) => allowedRoles.includes(role));
 
-  // 🏡 If user is agent or estate → show listing form
   if (canListHomes) {
     return <PropertyListingForm />;
   }
@@ -35,15 +39,15 @@ const AddProperty = () => {
     <div className="max-w-6xl mx-auto px-4 py-12 space-y-20">
       {canSwitchRoles && (
         <RoleSwitchNotice
+          user={user}
           title="You’re currently in Buyer Mode"
           message="You already have an agent or estate role. 
-    Please switch to the appropriate mode to start listing properties."
+            Please switch to the appropriate mode to start listing properties."
           actionLabel="Switch to Agent/Estate Mode"
-          redirectTo="/dashboard"
         />
       )}
 
-      {/* 🏠 Hero Section */}
+      {/* Hero Section */}
       <motion.section
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -74,7 +78,7 @@ const AddProperty = () => {
         </ul>
       </motion.section>
 
-      {/* ⚙️ How It Works */}
+      {/* How It Works */}
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -124,7 +128,7 @@ const AddProperty = () => {
         )}
       </motion.section>
 
-      {/* 💼 Why Choose Us */}
+      {/* Why Choose Us */}
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -168,7 +172,6 @@ const AddProperty = () => {
         </ul>
       </motion.section>
 
-      {/* ❓FAQ Section */}
       <FAQ />
     </div>
   );

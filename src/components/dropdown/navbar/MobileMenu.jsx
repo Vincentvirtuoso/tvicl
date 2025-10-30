@@ -9,7 +9,6 @@ const MobileMenu = ({
   handleAuth,
   logout,
   availableActions = [],
-  handleRoleSwitch,
   loading,
   user,
 }) => {
@@ -45,12 +44,7 @@ const MobileMenu = ({
         {isLoggedIn && availableActions.length > 0 && (
           <div className="flex flex-col gap-2 border-t border-gray-500/20 pt-4 w-full items-center">
             {availableActions.map((action, i) => (
-              <ActionButton
-                key={i}
-                {...action}
-                onClick={() => handleRoleSwitch(action.role)}
-                loading={loading.updateRole}
-              />
+              <ActionButton key={i} {...action} user={user} />
             ))}
           </div>
         )}

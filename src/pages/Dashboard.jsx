@@ -5,12 +5,10 @@ import {
   FaBuilding,
   FaUsers,
   FaDollarSign,
-  FaHome,
   FaChartLine,
   FaMapMarkerAlt,
   FaClipboardList,
   FaToolbox,
-  FaCoins,
   FaTachometerAlt,
   FaArrowUp,
   FaArrowDown,
@@ -32,233 +30,26 @@ import {
 } from "recharts";
 import { useAuth } from "../hooks/useAuth";
 import Hero from "../components/layout/Hero";
+import {
+  feed,
+  salesByRegion,
+  statsCards,
+  maintenanceRequests,
+  agentLeads,
+  investmentTrend,
+  propertyDistribution,
+  topProperties,
+  recentTransactions,
+} from "../assets/agentAndEstateDashboardAsset";
+import DashboardHeader from "../section/dashboard/DashboardHeader";
+import useAgent from "../hooks/useAgent";
+import { useEstateProfile } from "../hooks/useEstateProfile";
 
 const Dashboard = ({ role }) => {
   const { user } = useAuth();
 
-  const statsCards = [
-    {
-      id: "total_props",
-      title: "Total Properties",
-      value: "1,247",
-      change: "+12.5%",
-      isPositive: true,
-      icon: FaBuilding,
-      color: "bg-blue-500",
-      roles: ["admin", "agent", "estate"],
-    },
-    {
-      id: "active_investors",
-      title: "Active Investors",
-      value: "8,456",
-      change: "+24.3%",
-      isPositive: true,
-      icon: FaUsers,
-      color: "bg-green-500",
-      roles: ["admin"],
-    },
-    {
-      id: "revenue",
-      title: "Total Revenue",
-      value: "$42.5M",
-      change: "+18.7%",
-      isPositive: true,
-      icon: FaDollarSign,
-      color: "bg-purple-500",
-      roles: ["admin"],
-    },
-    {
-      id: "token_circ",
-      title: "Total Clients",
-      value: "24",
-      change: "+3.2%",
-      isPositive: true,
-      icon: FaCoins,
-      color: "bg-yellow-500",
-      roles: ["admin", "agent"],
-    },
-    {
-      id: "my_listings",
-      title: "My Listings",
-      value: "28",
-      change: "+2",
-      isPositive: true,
-      icon: FaHome,
-      color: "bg-indigo-500",
-      roles: ["agent"],
-    },
-    {
-      id: "agent_commission",
-      title: "Pending Commission",
-      value: "$12,400",
-      change: "-1.6%",
-      isPositive: false,
-      icon: FaDollarSign,
-      color: "bg-red-500",
-      roles: ["agent"],
-    },
-    {
-      id: "occupancy",
-      title: "Occupancy Rate",
-      value: "89%",
-      change: "+1.2%",
-      isPositive: true,
-      icon: FaTachometerAlt,
-      color: "bg-teal-500",
-      roles: ["estate"],
-    },
-    {
-      id: "maintenance",
-      title: "Open Maint. Requests",
-      value: "6",
-      change: "—",
-      isPositive: true,
-      icon: FaToolbox,
-      color: "bg-rose-500",
-      roles: ["estate"],
-    },
-  ];
-
-  // Investment Trend (monthly)
-  const investmentTrend = [
-    { month: "Jan", amount: 2400, investors: 140 },
-    { month: "Feb", amount: 2800, investors: 168 },
-    { month: "Mar", amount: 3200, investors: 195 },
-    { month: "Apr", amount: 2900, investors: 178 },
-    { month: "May", amount: 3800, investors: 225 },
-    { month: "Jun", amount: 4200, investors: 258 },
-    { month: "Jul", amount: 4800, investors: 292 },
-    { month: "Aug", amount: 5200, investors: 315 },
-    { month: "Sep", amount: 5600, investors: 330 },
-    { month: "Oct", amount: 6000, investors: 360 },
-  ];
-
-  // Sales by Region (bar)
-  const salesByRegion = [
-    { region: "NYC", sales: 1200 },
-    { region: "LA", sales: 980 },
-    { region: "Chicago", sales: 750 },
-    { region: "Houston", sales: 610 },
-    { region: "Miami", sales: 480 },
-  ];
-
-  // Property distribution
-  const propertyDistribution = [
-    { name: "Residential", value: 620, color: "#3B82F6" },
-    { name: "Commercial", value: 385, color: "#10B981" },
-    { name: "Land", value: 142, color: "#F59E0B" },
-    { name: "Industrial", value: 100, color: "#8B5CF6" },
-  ];
-
-  // Top performing properties
-  const topProperties = [
-    {
-      id: "P-101",
-      title: "Oceanview Apartment #402",
-      yield: "8.6%",
-      occupancy: "100%",
-      revenue: "$125k",
-    },
-    {
-      id: "P-278",
-      title: "Downtown Office Suite",
-      yield: "7.9%",
-      occupancy: "95%",
-      revenue: "$450k",
-    },
-    {
-      id: "P-503",
-      title: "Suburban Villa",
-      yield: "9.2%",
-      occupancy: "98%",
-      revenue: "$320k",
-    },
-  ];
-
-  // Recent transactions (admin) or agent leads (agent) or tenant events (estate)
-  const recentTransactions = [
-    {
-      id: "TXN-001",
-      property: "Oceanview Apt #402",
-      investor: "John Doe",
-      amount: "$125,000",
-      date: "2024-10-27",
-      type: "Purchase",
-    },
-    {
-      id: "TXN-002",
-      property: "Downtown Office Suite",
-      investor: "Sarah Smith",
-      amount: "$450,000",
-      date: "2024-10-27",
-      type: "Investment",
-    },
-    {
-      id: "TXN-003",
-      property: "Suburban Villa",
-      investor: "Mike Johnson",
-      amount: "$320,000",
-      date: "2024-10-26",
-      type: "Purchase",
-    },
-  ];
-
-  // Agent leads (if agent)
-  const agentLeads = [
-    {
-      id: "L-001",
-      name: "Samuel K",
-      contact: "sam@example.com",
-      status: "Contacted",
-      budget: "$150k",
-    },
-    {
-      id: "L-002",
-      name: "Grace M",
-      contact: "grace@example.com",
-      status: "Viewing",
-      budget: "$320k",
-    },
-  ];
-
-  // Estate maintenance requests (estate role)
-  const maintenanceRequests = [
-    {
-      id: "MR-1001",
-      title: "AC not cooling - Apt 402",
-      priority: "High",
-      status: "Open",
-      date: "2024-10-26",
-    },
-    {
-      id: "MR-1002",
-      title: "Leaky pipe - Basement",
-      priority: "Medium",
-      status: "Scheduled",
-      date: "2024-10-24",
-    },
-    {
-      id: "MR-1003",
-      title: "Broken gate lock",
-      priority: "Low",
-      status: "Open",
-      date: "2024-10-22",
-    },
-  ];
-
-  // Market insights / activity feed
-  const feed = [
-    {
-      id: "F2",
-      text: "Property sold, #120 completed.",
-      time: "1d ago",
-    },
-    {
-      id: "F3",
-      text: "Maintenance completed at Oceanview Apt #402.",
-      time: "2d ago",
-    },
-  ];
+  const { agent, loading: agentLoading } = useAgent();
+  const { estate, loading: estateLoading } = useEstateProfile();
 
   /* ----------------------
      ANIMATION VARS
@@ -267,14 +58,12 @@ const Dashboard = ({ role }) => {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
   };
+
   const itemVariants = {
     hidden: { y: 18, opacity: 0 },
     visible: { y: 0, opacity: 1, transition: { duration: 0.45 } },
   };
 
-  /* ----------------------
-     RENDER
-     ---------------------- */
   return (
     <div className="min-h-screen">
       <Hero
@@ -291,18 +80,14 @@ const Dashboard = ({ role }) => {
       />
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-6"
-        >
-          <h2 className="text-gray-600 font-medium">
-            Welcome back,{" "}
-            <span className="font-bold text-gray-800">{user.fullName}</span>.
-            Overview of your {role} metrics.
-          </h2>
-        </motion.div>
+        <DashboardHeader
+          user={user}
+          role={role}
+          agent={agent}
+          estate={estate}
+          agentLoading={agentLoading}
+          estateLoading={estateLoading}
+        />
 
         {/* Top summary cards */}
         <motion.div

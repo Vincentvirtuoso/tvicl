@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { FiLoader } from "react-icons/fi";
+import { useRoleSwitch } from "../../hooks/useRoleSwitch";
 
-const ActionButton = ({ label, icon, color, loading, bg, ...props }) => {
-  const isLoading = loading;
+const ActionButton = ({ label, icon, color, role, bg, user, ...props }) => {
+  const { switchRole, isUpdating } = useRoleSwitch(user);
+
+  const isLoading = isUpdating;
 
   return (
     <motion.button
@@ -12,6 +15,7 @@ const ActionButton = ({ label, icon, color, loading, bg, ...props }) => {
       className={`flex items-center gap-2 w-[240px] justify-center py-2 px-4 border text-sm border-gray-200 rounded-xl shadow-sm font-medium text-gray-700 bg-white transition-all duration-150 ${
         isLoading ? "opacity-70 cursor-not-allowed" : "hover:shadow-md"
       } ${bg}`}
+      onClick={() => switchRole(role)}
       {...props}
     >
       {isLoading ? (

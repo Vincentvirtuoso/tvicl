@@ -3,21 +3,17 @@ import { Loader } from "../../common/Loader";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../others/ActionButton";
-import Divider from "../../common/Divider";
-import { useAuth } from "../../../hooks/useAuth";
 
 const ProfileDropdown = ({
   user,
-  loadingAuth,
-  actions,
-  loginMock,
-  logoutMock,
-  availableActions, 
-  handleRoleSwitch
+  loading,
+  handleAuth,
+  logout,
+  availableActions,
 }) => {
-  const { loading, updateProfile } = useAuth();
-
   const navigate = useNavigate();
+  const isLoggedIn = user && !user.isUnauthorized;
+
   return (
     <motion.div
       key="profile"
@@ -31,7 +27,7 @@ const ProfileDropdown = ({
         <div className="flex items-center justify-center py-6">
           <Loader variant="spinner" size={36} label="" />
         </div>
-      ) : user ? (
+      ) : isLoggedIn ? (
         <div className="flex flex-col gap-3">
           {/* User Info */}
           <div className="flex items-center gap-3">
@@ -65,19 +61,17 @@ const ProfileDropdown = ({
           </div>
 
           {/* Action Buttons */}
-          { availableActions.length > 0 && !user.isUnauthorized && <div className="flex flex-col items-center gap-2 py-4 border-y border-gray-500/20">
-            {availableActions.map((a, i) => (
-              <ActionButton
-                key={i}
-                {...a}
-                onClick={() => handleRoleSwitch(a.role)}
-              />
-            ))}
-          </div>}
+          {availableActions.length > 0 && !user.isUnauthorized && (
+            <div className="flex flex-col items-center gap-2 py-4 border-y border-gray-500/20">
+              {availableActions.map((a, i) => (
+                <ActionButton key={i} {...a} user={user} />
+              ))}
+            </div>
+          )}
 
           {/* Logout */}
           <button
-            onClick={logoutMock}
+            onClick={logout}
             className="w-full py-2 rounded-md bg-red-500 text-white text-sm"
           >
             Sign out
@@ -88,13 +82,13 @@ const ProfileDropdown = ({
           <div className="text-sm">You are not signed in</div>
           <div className="flex gap-2">
             <button
-              onClick={loginMock}
-              className="flex-1 py-2 rounded-md bg-[#25aff3] text-black text-sm"
+              onClick={() => handleAuth("login")}
+              className="flex-1 py-2 rounded-md bg-primary hover:opacity-80 text-black text-sm"
             >
-              Sign in (mock)
+              Sign in
             </button>
             <button
-              onClick={() => navigate("/signup")}
+              onClick={() => handleAuth("register")}
               className="flex-1 py-2 rounded-md border border-gray-200 text-sm"
             >
               Sign up

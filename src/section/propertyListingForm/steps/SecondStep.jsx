@@ -1,6 +1,9 @@
 import { nigerianStates } from "../../../assets/propertyListingForm";
 
 const SecondStep = ({ formData, handleChange, errors }) => {
+  const addressField = formData.address;
+  const locationField = formData.location;
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">
@@ -13,8 +16,8 @@ const SecondStep = ({ formData, handleChange, errors }) => {
         </label>
         <input
           type="text"
-          name="street"
-          value={formData.street}
+          name="address.street"
+          value={addressField.street}
           onChange={handleChange}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
           placeholder="e.g., 123 Admiralty Way"
@@ -28,8 +31,8 @@ const SecondStep = ({ formData, handleChange, errors }) => {
           </label>
           <input
             type="text"
-            name="area"
-            value={formData.area}
+            name="address.area"
+            value={addressField.area}
             onChange={handleChange}
             className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
               errors.area ? "border-red-500" : "border-gray-300"
@@ -47,8 +50,8 @@ const SecondStep = ({ formData, handleChange, errors }) => {
           </label>
           <input
             type="text"
-            name="city"
-            value={formData.city}
+            name="address.city"
+            value={addressField.city}
             onChange={handleChange}
             className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
               errors.city ? "border-red-500" : "border-gray-300"
@@ -65,8 +68,8 @@ const SecondStep = ({ formData, handleChange, errors }) => {
             State *
           </label>
           <select
-            name="state"
-            value={formData.state}
+            name="address.state"
+            value={addressField.state}
             onChange={handleChange}
             className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
               errors.state ? "border-red-500" : "border-gray-300"
@@ -90,8 +93,8 @@ const SecondStep = ({ formData, handleChange, errors }) => {
           </label>
           <input
             type="text"
-            name="lga"
-            value={formData.lga}
+            name="address.lga"
+            value={addressField.lga}
             onChange={handleChange}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             placeholder="e.g., Eti-Osa"
@@ -104,8 +107,8 @@ const SecondStep = ({ formData, handleChange, errors }) => {
           </label>
           <input
             type="text"
-            name="postalCode"
-            value={formData.postalCode}
+            name="address.postalCode"
+            value={addressField.postalCode}
             onChange={handleChange}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             placeholder="e.g., 101245"
@@ -118,8 +121,8 @@ const SecondStep = ({ formData, handleChange, errors }) => {
           </label>
           <input
             type="text"
-            name="landmark"
-            value={formData.landmark}
+            name="address.landmark"
+            value={addressField.landmark}
             onChange={handleChange}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             placeholder="e.g., Near Shoprite Mall"
@@ -133,9 +136,9 @@ const SecondStep = ({ formData, handleChange, errors }) => {
             Latitude (optional)
           </label>
           <input
-            type="text"
-            name="latitude"
-            value={formData.latitude}
+            type="number"
+            name="location.coordinates[0]"
+            value={locationField.coordinates}
             onChange={handleChange}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             placeholder="e.g., 6.4541"
@@ -149,7 +152,7 @@ const SecondStep = ({ formData, handleChange, errors }) => {
           <input
             type="text"
             name="longitude"
-            value={formData.longitude}
+            value={locationField.longitude}
             onChange={handleChange}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
             placeholder="e.g., 3.3947"

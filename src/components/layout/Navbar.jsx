@@ -22,7 +22,6 @@ import { useAuth } from "../../hooks/useAuth";
 import NotificationPanel from "../dropdown/navbar/NotificationPanel";
 import ProfileDropdown from "../dropdown/navbar/ProfileDropdown";
 import MobileMenu from "../dropdown/navbar/MobileMenu";
-import { useToast } from "../../context/ToastManager";
 
 const ROLE_ACTIONS = [
   {
@@ -54,8 +53,7 @@ const Navbar = () => {
   const { scrollY } = useScrollTracker();
   const { items } = useCart();
   const { isDesktop } = useScreen();
-  const { user, logout, updateRole, loading } = useAuth();
-  const { addToast } = useToast();
+  const { user, logout, loading } = useAuth();
 
   // UI state
   const [menuOpen, setMenuOpen] = useState(false);
@@ -80,34 +78,6 @@ const Navbar = () => {
         return !isActive;
       })
     : [];
-
-  // Handle switching or adding a role
-  const handleRoleSwitch = async (role) => {
-    try {
-      if (!user.roles?.includes(role)) {
-        navigate("/become-agent-or-agency", { state: { role } });
-      } else {
-        await updateRole({
-          role: user?.activeRole,
-          makeActive: role,
-        });
-        addToast(
-          `You are now viewing as ${role === "buyer" ? "a" : "an"} ${role}`,
-          "info",
-          {
-            duration: 4000,
-          }
-        );
-
-        window.location.href = role === "buyer" ? "/" : `/${role}/dashboard`;
-      }
-    } catch (err) {
-      console.error(err);
-      addToast(err.response.data.message, "error", {
-        duration: 6000,
-      });
-    }
-  };
 
   // Body lock only when mobile menu open
   useBodyScrollLock(
@@ -418,9 +388,10 @@ const Navbar = () => {
           {profileMenuOpen && isDesktop && (
             <ProfileDropdown
               user={user}
-              actions={actions}
+              loading={loading}
+              handleAuth={handleAuth}
               availableActions={availableActions}
-              handleRoleSwitch={handleRoleSwitch}
+              logout={logout}
             />
           )}
         </AnimatePresence>
@@ -436,7 +407,6 @@ const Navbar = () => {
               loading={loading}
               logout={handleLogout}
               availableActions={availableActions}
-              handleRoleSwitch={handleRoleSwitch}
               handleAuth={handleAuth}
             />
           )}

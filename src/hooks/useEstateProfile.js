@@ -8,7 +8,7 @@ export const useEstateProfile = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await api.get("/api/estate/profile", {});
+      const res = await api.get("/estate/profile", {});
       setEstate(res.data.estate);
     } catch (err) {
       setError(err.response?.data?.message || "Error fetching estate profile");

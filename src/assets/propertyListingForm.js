@@ -129,17 +129,21 @@ export const fields = {
   listingType: "",
 
   // Address
-  street: "",
-  area: "",
-  city: "",
-  state: "",
-  lga: "",
-  postalCode: "",
-  landmark: "",
+  address: {
+    street: "",
+    area: "",
+    city: "",
+    state: "",
+    lga: "",
+    postalCode: "",
+    landmark: "",
+  },
 
   // Location coordinates
-  latitude: "",
-  longitude: "",
+  location: {
+    type: "Point",
+    coordinates: [0, 0], // [longitude, latitude]
+  },
 
   // Rooms
   bedrooms: 0,

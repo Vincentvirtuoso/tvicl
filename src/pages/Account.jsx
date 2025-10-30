@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiCamera, FiCheck } from "react-icons/fi";
+import { FiCamera, FiCheck, FiUser } from "react-icons/fi";
 import { LuBuilding } from "react-icons/lu";
 import { IoBriefcaseOutline } from "react-icons/io5";
 import { useToast } from "../context/ToastManager";
@@ -8,6 +8,9 @@ import ProfileCard from "../section/account/ProfileCard";
 import MainSection from "../section/account/MainSection";
 import { useAuth } from "../hooks/useAuth";
 import useAgent from "../hooks/useAgent";
+import { getInitials } from "../utils/helper";
+import { Loader } from "../components/common/Loader";
+import { useRoleSwitch } from "../hooks/useRoleSwitch";
 
 // Map frontend labels to backend role values
 const ROLE_LABELS = {
@@ -36,6 +39,8 @@ export default function ProfilePage() {
     : isAgent
     ? { ...user, agent }
     : { ...user, estate };
+
+  const initials = getInitials(user?.fullName || "");
 
   // Form state
   const [form, setForm] = useState({
@@ -163,12 +168,13 @@ export default function ProfilePage() {
     setForm((p) => ({ ...p, activeRole: value }));
   };
 
+  const { switchRole, isUpdating } = useRoleSwitch(user);
+
   const confirmRole = async () => {
     try {
-      await updateRole({ role: user.activeRole, makeActive: form.activeRole });
-      showToast("Active role updated", "success");
+      await switchRole(form.activeRole);
     } catch (err) {
-      showToast(err.message || "Failed to update role", "error");
+      showToast(err.response.data.message || "Failed to update role", "error");
     } finally {
       setShowRoleModal(false);
     }
@@ -205,18 +211,26 @@ export default function ProfilePage() {
 
         {/* Profile avatar + card */}
         <div className="absolute -bottom-26 left-4 right-4 py-4 px-6 flex items-center gap-4 bg-slate-200 rounded-md">
-          <div className="relative">
-            <img
-              src={profilePreview || "/default-avatar.png"}
-              alt="profile"
-              className="w-22 h-22 rounded-full object-cover border-4 border-gray-600 shadow-lg"
-            />
+          <div className="relative w-24 h-24">
+            {profilePreview ? (
+              <img
+                src={profilePreview}
+                alt="profile"
+                className="w-24 h-24 rounded-full object-cover border-4 border-gray-600 shadow-lg"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full border-4 border-gray-600 shadow-lg bg-gray-200 flex items-center justify-center text-gray-600 text-3xl font-semibold">
+                {user?.fullName ? initials : <FiUser />}
+              </div>
+            )}
+
             <button
               onClick={triggerProfileUpload}
-              className="absolute right-0 bottom-0 bg-primary p-2 rounded-full"
+              className="absolute right-0 bottom-0 bg-primary p-2 rounded-full hover:bg-primary/80 transition-colors"
             >
-              <FiCamera />
+              <FiCamera className="text-lg" />
             </button>
+
             <input
               type="file"
               accept="image/*"
@@ -225,6 +239,7 @@ export default function ProfilePage() {
               className="hidden"
             />
           </div>
+
           <div className="flex-1">
             <ProfileCard
               profile={form}
@@ -287,9 +302,16 @@ export default function ProfilePage() {
                 </button>
                 <button
                   onClick={confirmRole}
-                  className="px-4 py-1.5 text-sm rounded-md bg-primary text-white"
+                  disabled={loading.updateRole}
+                  className="px-4 py-1.5 text-sm rounded-md bg-primary text-white flex"
                 >
-                  <FiCheck className="inline-block mr-2" /> Confirm
+                  {isUpdating ? (
+                    <Loader size={20} variant="spinner" label="Updating..." />
+                  ) : (
+                    <>
+                      <FiCheck className="inline-block mr-2" /> Confirm
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>

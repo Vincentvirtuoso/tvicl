@@ -1,44 +1,59 @@
-import React, { useState } from "react";
-import {
-  LuChevronRight,
-  LuChevronLeft,
-  LuHouse as Home,
-  LuMapPin,
-  LuDollarSign,
-  LuFileText,
-  LuCheck as Check,
-} from "react-icons/lu";
-
-import { FaNairaSign } from "react-icons/fa6";
+import React, { useState, useEffect, useRef } from "react";
 import FirstStep from "../section/propertyListingForm/steps/FirstStep";
 import SecondStep from "../section/propertyListingForm/steps/SecondStep";
-import { useEffect } from "react";
-import { useRef } from "react";
 import ThirdStep from "../section/propertyListingForm/steps/ThirdStep";
 import FourthStep from "../section/propertyListingForm/steps/FourthStep";
 import FifthStep from "../section/propertyListingForm/steps/FifthStep";
 import SixthStep from "../section/propertyListingForm/steps/SixthStep";
 import ReviewStep from "../section/propertyListingForm/steps/ReviewStep";
 import NavigationButtons from "../section/propertyListingForm/NavigationButtons";
-import { fields, steps } from "../assets/propertyListingForm";
 import MediaUploadStep from "../section/propertyListingForm/MediaUploadStep";
+import {
+  fields,
+  generateMediaCategories,
+  steps,
+} from "../assets/propertyListingForm";
+import { usePropertyAPI } from "../hooks/useProperty";
+import { useToast } from "../context/ToastManager";
 
 const PropertyListingForm = () => {
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState(fields);
 
+  const { createProperty, isLoading } = usePropertyAPI();
+  const { addToast } = useToast();
+  const divRef = useRef(null);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    const newValue = type === "checkbox" ? checked : value;
+
+    setFormData((prev) => {
+      const updated = { ...prev };
+      const keys = name.replace(/\]/g, "").split(/\.|\[/); // supports dot + bracket syntax
+      let current = updated;
+
+      // Traverse nested structure
+      for (let i = 0; i < keys.length - 1; i++) {
+        const key = keys[i];
+        if (!current[key]) current[key] = {};
+        current = current[key];
+      }
+
+      // Assign value
+      current[keys[keys.length - 1]] = newValue;
+
+      return updated;
+    });
+
+    // Clear error if user edits that field
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }));
     }
   };
 
+  /** ✅ Validate per step */
   const validateStep = (currentStep) => {
     const newErrors = {};
 
@@ -92,6 +107,27 @@ const PropertyListingForm = () => {
         newErrors.possessionStatus = "Possession status is required";
     }
 
+    // ✅ Step 5: Media Validation
+    if (currentStep === 5) {
+      const categories = generateMediaCategories(formData);
+      const media = formData.mediaByCategory || {};
+
+      categories.forEach((cat) => {
+        const images = media[cat.id] || [];
+        const min = cat.minImages || 0;
+
+        if (cat.required && images.length < min) {
+          newErrors[cat.id] = `At least ${min} ${
+            min === 1 ? "photo" : "photos"
+          } required for ${cat.label}`;
+        }
+      });
+
+      if (!media.cover || media.cover.length === 0) {
+        newErrors.cover = "Please upload a cover photo";
+      }
+    }
+
     if (currentStep === 6) {
       if (!formData.contactName.trim())
         newErrors.contactName = "Contact name is required";
@@ -107,16 +143,31 @@ const PropertyListingForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  /** 🚀 Submit to backend via hook */
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateStep(step)) {
-      console.log("Form submitted:", formData);
-      alert("Property listing submitted successfully! Check console for data.");
+
+    if (!validateStep(step)) return;
+
+    try {
+      const res = await createProperty(formData);
+
+      addToast("Property listing created successfully!", "success");
+      console.log("Created property:", res.data);
+
+      // Optionally reset form
+      setFormData(fields);
+      setStep(1);
+    } catch (err) {
+      console.error(err);
+      addToast(
+        err.response?.data?.message || "Failed to create property.",
+        "error"
+      );
     }
   };
 
-  const divRef = useRef(null);
-
+  /** 🔄 Scroll to top when step changes */
   useEffect(() => {
     if (divRef.current && step > 1) {
       divRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -126,51 +177,43 @@ const PropertyListingForm = () => {
   return (
     <div className="min-h-screen" ref={divRef}>
       <div className="max-w-5xl mx-auto w-full">
-        {/* Progress Steps */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-start justify-between relative w-full py-4 px-2">
-            {steps.map((s, idx) => {
+        {/* Steps indicator */}
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
+          <div className="flex items-start justify-between gap-1 relative w-full py-4 px-2 flex-wrap">
+            {steps.map((s) => {
               const isActive = step >= s.num;
-              const isCompleted = step > s.num;
-
               return (
                 <div
                   key={s.num}
                   className="flex flex-col items-center flex-1 z-1"
                 >
-                  {/* Circle */}
                   <div
                     className={`flex items-center justify-center w-9 h-9 rounded-full border-2 transition-all duration-300
-            ${
-              isActive
-                ? "bg-yellow-600 border-yellow-600 text-white shadow-md"
-                : "bg-white border-gray-300 text-gray-500"
-            }`}
+              ${
+                isActive
+                  ? "bg-yellow-600 border-yellow-600 text-white shadow-md"
+                  : "bg-white border-gray-300 text-gray-500"
+              }`}
                   >
                     <s.icon className="w-4 h-4" />
                   </div>
-
-                  {/* Label */}
                   <span
-                    className={`mt-2 text-xs font-semibold text-center transition-colors duration-300
-            ${isActive ? "text-yellow-700" : "text-gray-500"}`}
+                    className={`mt-2 text-xs font-semibold text-center whitespace-nowrap transition-colors duration-300
+              ${isActive ? "text-yellow-700" : "text-gray-500"}`}
                   >
                     {s.title}
                   </span>
                 </div>
               );
             })}
-
-            {/* active progress line overlay */}
           </div>
         </div>
 
-        {/* Form Content */}
+        {/* Form */}
         <form
           onSubmit={handleSubmit}
           className="bg-white rounded-lg shadow-lg p-8"
         >
-          {/* Step 1: Basic Info */}
           {step === 1 && (
             <FirstStep
               formData={formData}
@@ -178,8 +221,6 @@ const PropertyListingForm = () => {
               errors={errors}
             />
           )}
-
-          {/* Step 2: Location */}
           {step === 2 && (
             <SecondStep
               formData={formData}
@@ -187,26 +228,20 @@ const PropertyListingForm = () => {
               errors={errors}
             />
           )}
-
-          {/* Step 3: Pricing */}
           {step === 3 && (
             <ThirdStep
+              formData={formData}
               handleChange={handleChange}
               errors={errors}
-              formData={formData}
             />
           )}
-
-          {/* Step 4: Details */}
           {step === 4 && (
             <FourthStep
+              formData={formData}
               handleChange={handleChange}
               errors={errors}
-              formData={formData}
             />
           )}
-
-          {/* Step 5: Features */}
           {step === 5 && (
             <MediaUploadStep
               formData={formData}
@@ -215,17 +250,13 @@ const PropertyListingForm = () => {
               setErrors={setErrors}
             />
           )}
-
-          {/* Step 6: Features */}
           {step === 6 && (
             <FifthStep
-              handleChange={handleChange}
               formData={formData}
+              handleChange={handleChange}
               setFormData={setFormData}
             />
           )}
-
-          {/* Step 7: Contact */}
           {step === 7 && (
             <SixthStep
               formData={formData}
@@ -233,15 +264,13 @@ const PropertyListingForm = () => {
               errors={errors}
             />
           )}
+          {step === 8 && <ReviewStep formData={formData} />}
 
-          {/* Step 8: Review */}
-          {step === 8 && <ReviewStep />}
-
-          {/* Navigation Buttons */}
           <NavigationButtons
             setStep={setStep}
             step={step}
             validateStep={validateStep}
+            isLoading={isLoading("createProperty")} // 🧠 using loading map
           />
         </form>
       </div>
