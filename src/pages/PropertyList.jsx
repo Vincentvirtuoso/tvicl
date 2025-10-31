@@ -17,6 +17,7 @@ import {
 import PropertyCard from "../components/ui/PropertyCard";
 import { usePropertyAPI } from "../hooks/useProperty";
 import { properties as dummyProperties } from "../data/properties";
+import { nigerianStates } from "../assets/propertyListingForm";
 
 const PropertyList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -49,23 +50,7 @@ const PropertyList = () => {
     searchProperties(searchTerm);
   }, [searchTerm, searchProperties]);
 
-  const properties = data?.properties?.data || [...dummyProperties];
-
-  const nigerianStates = [
-    "All",
-    "Lagos",
-    "Abuja",
-    "Rivers",
-    "Oyo",
-    "Kano",
-    "Kaduna",
-    "Ogun",
-    "Edo",
-    "Delta",
-    "Anambra",
-    "Enugu",
-    "Cross River",
-  ];
+  const properties = data?.properties || [...dummyProperties];
 
   const popularAmenities = [
     "Generator",

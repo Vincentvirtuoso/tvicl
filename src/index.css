@@ -3,7 +3,7 @@
 @theme {
   --color-primary: #facc15;
   --color-secondary: #44403c;
-  --font-sans: "Inter", sans-serif;
+  --font-sans: "Montserrat", sans-serif;
 }
 
 * {
@@ -17,6 +17,12 @@
   button {
     @apply cursor-pointer;
   }
+}
+
+input,
+select,
+textarea {
+  outline: none;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
@@ -36,7 +42,9 @@
   animation: spin 1s linear infinite;
 }
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* 2. Bounce */
@@ -44,8 +52,13 @@
   animation: bounce 1s infinite;
 }
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 /* 3. Pulse */
@@ -53,8 +66,15 @@
   animation: pulse 1.5s ease-in-out infinite;
 }
 @keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.7; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.7;
+  }
 }
 
 /* 4. Fade In */
@@ -62,8 +82,12 @@
   animation: fadeIn 0.8s ease-in-out forwards;
 }
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* 5. Slide In Left */
@@ -71,8 +95,14 @@
   animation: slideLeft 0.7s ease-out forwards;
 }
 @keyframes slideLeft {
-  from { transform: translateX(-50px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* 6. Shake (Error Effect) */
@@ -80,10 +110,40 @@
   animation: shake 0.4s linear both;
 }
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  50% { transform: translateX(4px); }
-  75% { transform: translateX(-4px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+  75% {
+    transform: translateX(-4px);
+  }
+}
+
+.blink-highlight {
+  animation: blinkFocus 1s ease-in-out;
+  outline: 2px solid #fa2c15;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@keyframes blinkFocus {
+  0% {
+    outline-color: rgba(250, 55, 21, 0.15);
+  }
+
+  50% {
+    outline-color: rgba(250, 21, 21, 0.35);
+  }
+
+  100% {
+    outline-color: transparent;
+  }
 }
 
 /* BONUS: Hover Glow (Button Effect) */

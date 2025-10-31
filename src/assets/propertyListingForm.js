@@ -1,7 +1,6 @@
 import { FaNairaSign } from "react-icons/fa6";
 import {
   LuCheck,
-  LuClipboardCheck,
   LuFileText,
   LuHouse,
   LuImages,
@@ -15,7 +14,6 @@ export const steps = [
   { num: 3, title: "Pricing", icon: FaNairaSign },
   { num: 4, title: "Details", icon: LuFileText },
   { num: 5, title: "Media Uploads", icon: LuImages },
-  { num: 6, title: "Features", icon: LuClipboardCheck },
   { num: 7, title: "Contact", icon: LuPhone },
   { num: 8, title: "Review", icon: LuCheck },
 ];
@@ -111,6 +109,45 @@ export const amenitiesList = [
   "School Nearby",
 ];
 
+export const waterSupply = [
+  "Borehole",
+  "Water Corporation",
+  "Bottled/Delivered",
+  "Municipal",
+  "Both",
+];
+
+export const powerBackup = ["Generator", "Inverter", "Full", "Partial", "None"];
+
+export const validGas = ["Cylinder", "Piped Gas", "None"];
+
+export const validFacing = [
+  "North",
+  "South",
+  "East",
+  "West",
+  "North-East",
+  "North-West",
+  "South-East",
+  "South-West",
+];
+
+export const placeTypes = [
+  "schools",
+  "hospitals",
+  "transport",
+  "shoppingCenters",
+  "parks",
+];
+
+export const docTypes = [
+  "cOfO",
+  "governorsConsent",
+  "surveyPlan",
+  "deedOfAssignment",
+  "excision",
+];
+
 export const additionalRoomsList = [
   "Servant Room",
   "Study Room",
@@ -119,6 +156,16 @@ export const additionalRoomsList = [
   "Home Theater",
   "Terrace",
 ];
+
+export const transactionTypes = [
+  "Off Plan",
+  "Outright",
+  "Installments",
+  "Mortgage",
+  "Rent to Own",
+];
+
+export const listingTypes = ["For Sale", "For Rent", "Short Let"];
 
 export const fields = {
   // Basic Info
@@ -146,8 +193,8 @@ export const fields = {
   },
 
   // Rooms
-  bedrooms: 0,
-  bathrooms: 0,
+  bedrooms: 1,
+  bathrooms: 1,
   kitchens: 1,
   balconies: 0,
 
@@ -161,21 +208,33 @@ export const fields = {
   carpetAreaValue: "",
   carpetAreaUnit: "sqft",
 
+  // Media
+  media: [],
+
   // Pricing
-  priceAmount: "",
-  negotiable: false,
-  transactionType: "",
+  price: {
+    amount: 0,
+    currency: "NGN",
+    negotiable: false,
+  },
+  paymentPlans: [],
 
   // Rental details
-  depositAmount: "",
-  rentFrequency: "Monthly",
-  leaseDurationMonths: "",
-  petsAllowed: false,
-  preferredTenants: "Anyone",
-  serviceChargeAmount: "",
-  serviceChargeFrequency: "Monthly",
-  agencyFeePercent: "",
-  cautionFee: "",
+  rentalDetails: {
+    depositAmount: "",
+    rentFrequency: "Monthly",
+    leaseDurationMonths: "",
+    serviceCharge: {
+      amount: "",
+      frequency: "Monthly",
+    },
+    agencyFeePercent: "",
+    cautionFee: "",
+    petsAllowed: false,
+    preferredTenants: "Anyone",
+  },
+
+  transactionType: "Rent to Own",
 
   // Condition
   furnishingStatus: "",
@@ -185,16 +244,20 @@ export const fields = {
   yearBuilt: "",
 
   // Parking
-  coveredParking: 0,
-  openParking: 0,
+  parking: {
+    covered: 0,
+    open: 0,
+  },
 
   // Amenities
   amenities: [],
 
   // Utilities
-  waterSupply: "Municipal",
-  powerBackup: "None",
-  gas: "None",
+  utilities: {
+    waterSupply: "Municipal",
+    powerBackup: "None",
+    gas: "None",
+  },
 
   // Orientation
   facing: "",
@@ -204,17 +267,22 @@ export const fields = {
   highlights: "",
 
   // Contact
-  contactName: "",
-  contactPhone: "",
-  contactEmail: "",
-  contactRole: "",
+  contactPerson: [
+    {
+      name: "",
+      phone: "",
+      email: "",
+      role: "Agent",
+    },
+  ],
 
   // Legal
-  hasCofo: false,
-  hasGovernorsConsent: false,
-  hasSurveyPlan: false,
-  hasDeedOfAssignment: false,
-  hasExcision: false,
+  legalDocuments: {
+    cOfO: { present: false, url: "" },
+    surveyPlan: { present: false, url: "" },
+    deedOfAssignment: { present: false, url: "" },
+    governorsConsent: { present: false, url: "" },
+  },
 };
 
 export const generateMediaCategories = (data) => {

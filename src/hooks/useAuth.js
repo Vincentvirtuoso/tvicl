@@ -193,7 +193,7 @@ export const useAuth = () => {
   };
 
   // ------------------- ADD PROFILE -------------------
-  const addProfile = async ({ role, profileData }) => {
+  const addProfile = async ({ profileData }) => {
     setLoadingState("addProfile", true);
     try {
       const res = await axios.post("/auth/add-profile", profileData, {

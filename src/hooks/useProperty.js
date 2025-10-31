@@ -72,7 +72,9 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
 
   // 🧩 CRUD Operations
   const createProperty = async (payload) =>
-    api.post("/properties/create", payload);
+    api.post("/properties/create", payload, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
   const updateProperty = async (id, payload) =>
     api.put(`/properties/${id}`, payload);
   const deleteProperty = async (id) => api.delete(`/properties/${id}`);

@@ -1,100 +1,238 @@
-import React, { useState, useEffect } from "react";
-import {
-  FaTimes,
-  FaStar,
-  FaCamera,
-  FaVideo,
-  FaCheckCircle,
-} from "react-icons/fa";
-import { LuCamera } from "react-icons/lu";
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useState, useEffect, useMemo, memo, useRef } from "react";
+import { FaVideo, FaCheckCircle } from "react-icons/fa";
+import { LuCamera, LuInfo, LuCircleAlert } from "react-icons/lu";
 import { generateMediaCategories } from "../../assets/propertyListingForm";
+import FileUpload from "./FileUpload";
+import { useToast } from "../../context/ToastManager";
 
-const MediaUploadStep = ({ formData, setFormData, errors, setErrors }) => {
+const MediaUploadStep = ({
+  formData,
+  setFormData,
+  errors,
+  setCanProceedStep5,
+  checkingStep5,
+  setCheckingStep5,
+  setErrors,
+}) => {
   const [mediaCategories, setMediaCategories] = useState({});
   const [videoLink, setVideoLink] = useState(formData.videoUrl || "");
   const [activeCategory, setActiveCategory] = useState(null);
+  const [isValidatingVideo, setIsValidatingVideo] = useState(false);
 
-  // Generate required media categories based on property details
+  const { addToast } = useToast();
+
+  const uploadSectionRef = useRef(null);
+
+  // 📊 Memoized categories to prevent unnecessary recalculations
+  const categories = useMemo(
+    () => generateMediaCategories(formData),
+    [
+      formData.bedrooms,
+      formData.bathrooms,
+      formData.kitchens,
+      formData.balconies,
+      formData.additionalRooms,
+    ]
+  );
+
+  // 🔄 Initialize and organize media by category
   useEffect(() => {
-    const categories = generateMediaCategories(formData);
+    const existingMedia = formData.media || [];
+    const organized = {};
 
-    // Initialize with existing images or empty arrays
-    const initialMedia = formData.mediaByCategory || {};
-    const merged = {};
-
+    // Initialize all categories
     categories.forEach((cat) => {
-      merged[cat.id] = initialMedia[cat.id] || [];
+      organized[cat.id] = [];
     });
 
-    setMediaCategories(merged);
+    // Organize existing media by category
+    existingMedia.forEach((mediaItem) => {
+      if (organized[mediaItem.category]) {
+        organized[mediaItem.category].push(mediaItem);
+      }
+    });
+
+    setMediaCategories(organized);
+
+    // Set first category as active if none selected
     if (categories.length > 0 && !activeCategory) {
       setActiveCategory(categories[0].id);
     }
-  }, [
-    formData.bedrooms,
-    formData.bathrooms,
-    formData.kitchens,
-    formData.balconies,
-    formData.additionalRooms,
-  ]);
+  }, [categories, formData.media?.length]);
 
-  const handleFilesChange = (categoryId, e) => {
+  // 📂 Handle File Uploads with comprehensive validation
+  const handleFilesChange = (categoryId, e, subCategory) => {
     const files = Array.from(e.target.files);
-    const category = generateMediaCategories(formData).find(
-      (c) => c.id === categoryId
-    );
+    const category = categories.find((c) => c.id === categoryId);
+    const current = mediaCategories[categoryId] || [];
 
-    // Check max images for cover
-    if (category?.maxImages === 1 && mediaCategories[categoryId]?.length >= 1) {
-      alert(
-        "You can only upload 1 cover photo. Remove the existing one first."
+    if (!category || files.length === 0) return;
+
+    const MAX_FILE_SIZE_MB = 5;
+    const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
+    const ALLOWED_TYPES = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+    ];
+
+    const validImages = [];
+    const invalidFiles = [];
+
+    // ✅ Validate each file
+    files.forEach((file) => {
+      if (!ALLOWED_TYPES.includes(file.type.toLowerCase())) {
+        invalidFiles.push(
+          `${file.name} (invalid format - use JPG, PNG, or WebP)`
+        );
+      } else if (file.size > MAX_FILE_SIZE) {
+        invalidFiles.push(
+          `${file.name} (${(file.size / 1024 / 1024).toFixed(
+            1
+          )}MB - exceeds ${MAX_FILE_SIZE_MB}MB limit)`
+        );
+      } else {
+        validImages.push(file);
+      }
+    });
+
+    // ⚠️ Show validation errors
+    if (invalidFiles.length > 0) {
+      addToast(
+        `${invalidFiles.length} file(s) rejected:\n\n${invalidFiles.join(
+          "\n"
+        )}\n\n✓ Allowed: JPG, PNG, WebP\n✓ Max size: ${MAX_FILE_SIZE_MB}MB`,
+        "error"
+      );
+    }
+
+    // 📏 Check category limits
+    if (
+      category.maxImages &&
+      current.length + validImages.length > category.maxImages
+    ) {
+      const remaining = category.maxImages - current.length;
+      addToast(
+        `Upload limit reached for "${category.label}".\n\nMax: ${category.maxImages} images\nCurrent: ${current.length}\nRemaining: ${remaining}`,
+        "warning"
       );
       return;
     }
 
-    const newImages = files.map((file) => ({
+    if (validImages.length === 0) return;
+
+    // ✅ Create media items with proper schema
+    const newMediaItems = validImages.map((file) => ({
       url: URL.createObjectURL(file),
-      file,
-      caption: "",
+      file, // Keep for upload
+      type: "image",
       category: categoryId,
+      subCategory:
+        categoryId === "cover"
+          ? "cover"
+          : subCategory
+          ? subCategory
+          : "gallery",
+      caption: "",
+      isPrimary: categoryId === "cover" && current.length === 0,
+      uploadedAt: new Date().toISOString(),
     }));
 
-    const updated = {
-      ...mediaCategories,
-      [categoryId]: [...(mediaCategories[categoryId] || []), ...newImages],
-    };
+    updateMediaState(categoryId, [...current, ...newMediaItems]);
 
-    setMediaCategories(updated);
-    setFormData((prev) => ({ ...prev, mediaByCategory: updated }));
-
+    // Clear error for this category
     if (errors[categoryId]) {
       setErrors((prev) => ({ ...prev, [categoryId]: null }));
     }
+
+    addToast(
+      `✓ ${validImages.length} image${
+        validImages.length > 1 ? "s" : ""
+      } added to ${category.label}`,
+      "success"
+    );
   };
 
+  // ✏️ Update caption
   const handleCaptionChange = (categoryId, index, caption) => {
-    const updated = { ...mediaCategories };
-    updated[categoryId][index].caption = caption;
-    setMediaCategories(updated);
-    setFormData((prev) => ({ ...prev, mediaByCategory: updated }));
+    const updatedCategory = mediaCategories[categoryId].map((item, idx) =>
+      idx === index ? { ...item, caption } : item
+    );
+    updateMediaState(categoryId, updatedCategory);
   };
 
-  const removeImage = (categoryId, index) => {
-    const updated = { ...mediaCategories };
-    updated[categoryId] = updated[categoryId].filter((_, i) => i !== index);
-    setMediaCategories(updated);
-    setFormData((prev) => ({ ...prev, mediaByCategory: updated }));
+  // ⭐ Set primary cover image
+  const handleSetPrimary = (categoryId, index) => {
+    if (categoryId !== "cover") return;
+
+    const updatedCategory = mediaCategories[categoryId].map((item, idx) => ({
+      ...item,
+      isPrimary: idx === index,
+    }));
+
+    updateMediaState(categoryId, updatedCategory);
+    addToast("✓ Primary cover image updated", "success");
   };
 
+  // ❌ Remove file
+  const removeFile = (categoryId, index) => {
+    const updatedCategory = mediaCategories[categoryId].filter(
+      (_, i) => i !== index
+    );
+
+    // If removing primary cover, set first remaining as primary
+    if (categoryId === "cover" && updatedCategory.length > 0) {
+      const hadPrimary = mediaCategories[categoryId][index]?.isPrimary;
+      if (hadPrimary) {
+        updatedCategory[0].isPrimary = true;
+      }
+    }
+
+    updateMediaState(categoryId, updatedCategory);
+  };
+
+  // 🔄 Centralized state update helper
+  const updateMediaState = (categoryId, updatedCategoryData) => {
+    const updatedCategories = {
+      ...mediaCategories,
+      [categoryId]: updatedCategoryData,
+    };
+
+    setMediaCategories(updatedCategories);
+
+    // Flatten to array for formData
+    const allMedia = Object.values(updatedCategories).flat();
+    setFormData((prev) => ({ ...prev, media: allMedia }));
+  };
+
+  // 🎥 Handle video URL with validation
   const handleVideoChange = (e) => {
-    const val = e.target.value;
+    const val = e.target.value.trim();
     setVideoLink(val);
-    setFormData((prev) => ({ ...prev, videoUrl: val }));
+
+    if (!val) {
+      setFormData((prev) => ({ ...prev, videoUrl: "" }));
+      return;
+    }
+
+    // Simple validation for YouTube/Vimeo
+    const isValid =
+      val.includes("youtube.com") ||
+      val.includes("youtu.be") ||
+      val.includes("vimeo.com");
+
+    if (isValid) {
+      setFormData((prev) => ({ ...prev, videoUrl: val }));
+    }
   };
 
+  // 📊 Calculate progress
   const getCategoryProgress = (category) => {
-    const images = mediaCategories[category.id] || [];
-    const count = images.length;
+    const files = mediaCategories[category.id] || [];
+    const count = files.length;
     const min = category.minImages || 0;
 
     if (category.required) {
@@ -103,255 +241,348 @@ const MediaUploadStep = ({ formData, setFormData, errors, setErrors }) => {
     return count > 0 ? "complete" : "optional";
   };
 
-  const categories = generateMediaCategories(formData);
-  const totalRequired = categories.filter((c) => c.required).length;
-  const completedRequired = categories.filter(
-    (c) => c.required && getCategoryProgress(c) === "complete"
-  ).length;
+  // 📈 Overall progress stats
+
+  const progressStats = useMemo(() => {
+    const totalRequired = categories.filter((c) => c.required).length;
+    const completedRequired = categories.filter(
+      (c) => c.required && getCategoryProgress(c) === "complete"
+    ).length;
+    const totalUploaded = Object.values(mediaCategories).flat().length;
+
+    return {
+      totalRequired,
+      completedRequired,
+      percentage:
+        totalRequired > 0 ? (completedRequired / totalRequired) * 100 : 0,
+      totalUploaded,
+      isComplete: completedRequired === totalRequired,
+    };
+  }, [categories, mediaCategories, getCategoryProgress]);
+  useEffect(() => {
+    if (errors.media) {
+      addToast(errors.media, "error");
+    }
+    if (errors.imagesCount) {
+      addToast(errors.imagesCount, "error");
+    }
+  }, [errors]);
+
+  useEffect(() => {
+    if (!progressStats.isComplete && checkingStep5) {
+      addToast(
+        "Please complete all required media uploads before continuing.",
+        "error"
+      );
+
+      // Smooth scroll to the first incomplete category
+      const firstIncomplete = categories.find(
+        (c) => c.required && getCategoryProgress(c) !== "complete"
+      );
+      if (firstIncomplete) {
+        const targetSection = document.querySelector(
+          `#category-${firstIncomplete.id}`
+        );
+        if (targetSection) {
+          targetSection.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+
+          setTimeout(() => {
+            targetSection?.focus?.();
+
+            // Add blinking highlight class
+            targetSection.classList.add("animate-shake");
+
+            // Remove it after animation ends
+            setTimeout(() => {
+              targetSection.classList.remove("animate-shake");
+            }, 3000);
+          }, 500);
+        }
+      }
+      setCheckingStep5(false);
+      return;
+    }
+    setCanProceedStep5(true);
+  }, [formData, checkingStep5]);
+
+  useEffect(() => {
+    if (!uploadSectionRef.current) return;
+    uploadSectionRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+    const targetBtn = document.querySelector("#uploadFiles");
+    setTimeout(() => {
+      targetBtn.focus();
+
+      // Add blinking highlight class
+      targetBtn.classList.add("animate-shake");
+
+      // Remove it after animation ends
+      setTimeout(() => {
+        targetBtn.classList.remove("animate-shake");
+      }, 3000);
+    }, 500);
+  }, [activeCategory]);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-6 pb-8">
+      {/* Header with Stats */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-800">
-          Upload Property Photos
-        </h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Upload clear, well-lit photos of your property. More photos increase
-          interest!
-        </p>
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <LuCamera className="text-primary" />
+              Upload Property Media
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              High-quality photos significantly increase viewer interest and
+              inquiries
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-primary">
+              {progressStats.totalUploaded}
+            </div>
+            <div className="text-xs text-gray-500">Photos Uploaded</div>
+          </div>
+        </div>
 
-        {/* Progress bar */}
-        <div className="mt-4">
+        {/* Progress Bar */}
+        <div className="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              Required Sections: {completedRequired}/{totalRequired}
+            <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              {progressStats.isComplete ? (
+                <>
+                  <FaCheckCircle className="text-green-500" />
+                  All Required Sections Complete
+                </>
+              ) : (
+                <>
+                  <LuCircleAlert className="text-yellow-500" />
+                  Required Sections: {progressStats.completedRequired}/
+                  {progressStats.totalRequired}
+                </>
+              )}
             </span>
-            <span className="text-xs text-gray-500">
-              {Math.round((completedRequired / totalRequired) * 100)}% Complete
+            <span className="text-sm font-bold text-primary">
+              {Math.round(progressStats.percentage)}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
             <div
-              className="bg-green-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(completedRequired / totalRequired) * 100}%` }}
+              className={`h-3 rounded-full transition-all duration-500 ease-out ${
+                progressStats.isComplete
+                  ? "bg-gradient-to-r from-green-400 to-green-600"
+                  : "bg-gradient-to-r from-yellow-400 to-primary"
+              }`}
+              style={{ width: `${progressStats.percentage}%` }}
             ></div>
           </div>
         </div>
       </div>
 
-      {/* Category Navigation */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+      {/* Category Navigation Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
         {categories.map((cat) => {
           const progress = getCategoryProgress(cat);
-          const images = mediaCategories[cat.id] || [];
+          const files = mediaCategories[cat.id] || [];
+          const isActive = activeCategory === cat.id;
+          const isComplete = progress === "complete";
 
           return (
             <button
               key={cat.id}
               type="button"
+              id={`category-${cat.id}`}
               onClick={() => setActiveCategory(cat.id)}
-              className={`relative p-3 rounded-lg border-2 transition-all ${
-                activeCategory === cat.id
-                  ? "border-yellow-500 bg-yellow-50"
-                  : progress === "complete"
-                  ? "border-green-300 bg-green-50"
+              className={`relative p-4 rounded-xl border-2 transition-all duration-200 ${
+                isActive
+                  ? "border-primary bg-yellow-50 shadow-lg scale-105"
+                  : isComplete
+                  ? "border-green-300 bg-green-50 hover:border-green-400"
                   : cat.required
-                  ? "border-gray-300 bg-white hover:border-gray-400"
-                  : "border-gray-200 bg-gray-50"
+                  ? "border-gray-300 bg-white hover:border-gray-400 hover:shadow-md"
+                  : "border-gray-200 bg-gray-50 hover:border-gray-300"
               }`}
             >
-              <div className="text-2xl mb-1">{cat.icon}</div>
-              <div className="text-xs font-medium text-gray-800 mb-1 truncate">
-                {cat.label}
-              </div>
-              <div className="flex items-center justify-center gap-1">
-                <FaCamera size={10} className="text-gray-400" />
-                <span className="text-xs text-gray-600">{images.length}</span>
-              </div>
-
-              {progress === "complete" && (
+              {/* Badge for required/complete */}
+              {cat.required && !isComplete && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  Required
+                </span>
+              )}
+              {isComplete && (
                 <FaCheckCircle
-                  size={14}
-                  className="absolute top-1 right-1 text-green-500"
+                  className="absolute -top-2 -right-2 text-green-500 bg-white rounded-full"
+                  size={20}
                 />
               )}
 
-              {cat.required && progress === "incomplete" && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              )}
+              <div className="text-3xl mb-2">{cat.icon}</div>
+              <div className="text-xs font-semibold text-gray-800 mb-1 truncate">
+                {cat.label}
+              </div>
+              <div className="flex items-center justify-center gap-1 text-xs">
+                <span className="font-bold text-primary">{files.length}</span>
+                <span className="text-gray-500">
+                  {cat.maxImages ? `/ ${cat.maxImages}` : ""}
+                </span>
+              </div>
             </button>
           );
         })}
       </div>
 
       {/* Active Category Upload Section */}
-      {activeCategory &&
-        (() => {
-          const category = categories.find((c) => c.id === activeCategory);
-          const images = mediaCategories[activeCategory] || [];
-          const progress = getCategoryProgress(category);
+      {activeCategory && (
+        <div
+          className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
+          ref={uploadSectionRef}
+        >
+          {(() => {
+            const category = categories.find((c) => c.id === activeCategory);
+            const files = mediaCategories[activeCategory] || [];
+            const progress = getCategoryProgress(category);
 
-          return (
-            <div className="border-2 border-gray-200 rounded-lg p-6 bg-white">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                    <span className="text-2xl">{category.icon}</span>
-                    {category.label}
-                    {category.required && (
-                      <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                        Required
-                      </span>
-                    )}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {category.description}
-                  </p>
-                  {category.minImages > 0 && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Minimum {category.minImages}{" "}
-                      {category.minImages === 1 ? "photo" : "photos"} required
-                    </p>
-                  )}
-                </div>
-
-                {progress === "complete" && (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <FaCheckCircle size={20} />
-                    <span className="text-sm font-medium">Complete</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Upload Button */}
-              <label className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 cursor-pointer transition-colors">
-                <FaCamera />
-                <span>
-                  {images.length === 0 ? "Upload Photos" : "Add More Photos"}
-                </span>
-                <input
-                  type="file"
-                  multiple={category.maxImages !== 1}
-                  accept="image/*"
-                  onChange={(e) => handleFilesChange(activeCategory, e)}
-                  className="hidden"
-                />
-              </label>
-
-              {errors[activeCategory] && (
-                <p className="text-red-500 text-sm mt-2">
-                  {errors[activeCategory]}
-                </p>
-              )}
-
-              {/* Image Grid */}
-              {images.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
-                  {images.map((img, idx) => (
-                    <div
-                      key={idx}
-                      className="relative border-2 border-gray-200 rounded-lg overflow-hidden hover:border-yellow-400 transition-colors group"
-                    >
-                      <img
-                        src={img.url}
-                        alt={`${category.label} ${idx + 1}`}
-                        className="w-full h-40 object-cover"
-                      />
-
-                      {/* Remove button */}
-                      <button
-                        type="button"
-                        onClick={() => removeImage(activeCategory, idx)}
-                        className="absolute top-2 right-2 text-white bg-red-600 rounded-full p-2 hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                        title="Remove photo"
-                      >
-                        <FaTimes size={14} />
-                      </button>
-
-                      {/* Star for cover */}
-                      {category.id === "cover" && (
-                        <div className="absolute top-2 left-2 bg-yellow-500 text-white rounded-full p-2 shadow-lg">
-                          <FaStar size={14} />
-                        </div>
-                      )}
-
-                      {/* Caption input */}
-                      <div className="p-2 bg-white">
-                        <input
-                          type="text"
-                          placeholder="Add caption (optional)"
-                          value={img.caption}
-                          onChange={(e) =>
-                            handleCaptionChange(
-                              activeCategory,
-                              idx,
-                              e.target.value
-                            )
-                          }
-                          className="w-full text-xs p-2 border border-gray-200 rounded focus:border-yellow-400 focus:outline-none"
-                        />
-                      </div>
-
-                      {/* Image number */}
-                      <div className="absolute bottom-12 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
-                        {idx + 1}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {images.length === 0 && (
-                <div className="mt-4 p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                  <FaCamera size={40} className="mx-auto text-gray-400 mb-2" />
-                  <p className="text-gray-500 text-sm">
-                    No photos uploaded yet
-                  </p>
-                  <p className="text-gray-400 text-xs mt-1">
-                    Click the button above to add photos
-                  </p>
-                </div>
-              )}
-            </div>
-          );
-        })()}
+            return (
+              <FileUpload
+                key={category.id}
+                icon={category.icon}
+                label={category.label}
+                description={category.description}
+                required={category.required}
+                minFiles={category.minImages}
+                maxFiles={category.maxImages}
+                progress={progress}
+                accept="image/*"
+                name={category.id}
+                id={category.id}
+                preview={files}
+                errors={errors}
+                uploadPlaceholder="Upload Photos"
+                allowCaption
+                isCoverable={category.id === "cover"}
+                onSetPrimary={handleSetPrimary}
+                handleFilesChange={handleFilesChange}
+                handleCaptionChange={handleCaptionChange}
+                removeFile={removeFile}
+              />
+            );
+          })()}
+        </div>
+      )}
 
       {/* Video Section */}
-      <div className="border-2 border-gray-200 rounded-lg p-6 bg-white">
-        <div className="flex items-center gap-2 mb-4">
-          <FaVideo className="text-yellow-500" size={20} />
-          <h3 className="text-lg font-semibold text-gray-800">
-            Property Video (Optional)
-          </h3>
+      <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-3 bg-red-100 rounded-lg">
+            <FaVideo className="text-red-600" size={24} />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Property Video Tour
+              <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">
+                Optional
+              </span>
+            </h3>
+            <p className="text-sm text-gray-600">
+              Add a YouTube or Vimeo walkthrough to boost engagement by 80%
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-gray-600 mb-4">
-          Add a YouTube or Vimeo video link to give viewers a virtual tour
-        </p>
-        <input
-          type="url"
-          value={videoLink}
-          onChange={handleVideoChange}
-          placeholder="https://www.youtube.com/watch?v=..."
-          className="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-yellow-400 focus:outline-none"
-        />
+        <div className="flex gap-2">
+          <input
+            type="url"
+            value={videoLink}
+            onChange={handleVideoChange}
+            placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
+            name="videoUrl"
+            className="flex-1 border-2 border-gray-300 rounded-lg p-3 focus:border-primary focus:outline-none transition-colors"
+          />
+          {videoLink && (
+            <button
+              type="button"
+              onClick={() => {
+                setVideoLink("");
+                setFormData((prev) => ({ ...prev, videoUrl: "" }));
+              }}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        {((videoLink &&
+          !videoLink.includes("youtube") &&
+          !videoLink.includes("vimeo")) ||
+          errors.videoUrl) && (
+          <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+            <LuCircleAlert />
+            {errors.videoUrl || "Please use a valid YouTube or Vimeo URL"}
+          </p>
+        )}
       </div>
 
-      {/* Tips Section */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <h4 className="font-semibold text-yellow-900 mb-2 flex gap-2 items-center ">
-          <LuCamera /> Photography Tips
+      {/* Enhanced Tips Section */}
+      <div className="bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-6">
+        <h4 className="font-bold text-yellow-900 mb-3 flex gap-2 items-center text-lg">
+          <LuInfo className="text-yellow-600" size={24} />
+          Pro Photography Tips
         </h4>
-        <ul className="text-sm text-yellow-800 space-y-1">
-          <li>• Use natural daylight for the best results</li>
-          <li>• Clean and declutter spaces before photographing</li>
-          <li>• Take photos from corners to show more space</li>
-          <li>• Include wide-angle shots and detail shots</li>
-          <li>• Ensure photos are sharp and well-focused</li>
-        </ul>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div className="flex items-start gap-2 text-sm text-yellow-900">
+              <span className="text-green-600 font-bold">✓</span>
+              <span>
+                <strong>Golden hour magic:</strong> Shoot during early morning
+                or late afternoon
+              </span>
+            </div>
+            <div className="flex items-start gap-2 text-sm text-yellow-900">
+              <span className="text-green-600 font-bold">✓</span>
+              <span>
+                <strong>Declutter & stage:</strong> Remove personal items and
+                tidy up
+              </span>
+            </div>
+            <div className="flex items-start gap-2 text-sm text-yellow-900">
+              <span className="text-green-600 font-bold">✓</span>
+              <span>
+                <strong>Corner angles:</strong> Capture more space in each shot
+              </span>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-start gap-2 text-sm text-yellow-900">
+              <span className="text-green-600 font-bold">✓</span>
+              <span>
+                <strong>Mix wide & detail shots:</strong> Show overview and
+                highlights
+              </span>
+            </div>
+            <div className="flex items-start gap-2 text-sm text-yellow-900">
+              <span className="text-green-600 font-bold">✓</span>
+              <span>
+                <strong>Sharp focus:</strong> Use a tripod or stabilize your
+                phone
+              </span>
+            </div>
+            <div className="flex items-start gap-2 text-sm text-yellow-900">
+              <span className="text-green-600 font-bold">✓</span>
+              <span>
+                <strong>Vertical shots:</strong> Don't forget ceiling height and
+                details
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default MediaUploadStep;
+export default memo(MediaUploadStep);

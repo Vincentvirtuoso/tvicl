@@ -1,163 +1,114 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import FirstStep from "../section/propertyListingForm/steps/FirstStep";
 import SecondStep from "../section/propertyListingForm/steps/SecondStep";
 import ThirdStep from "../section/propertyListingForm/steps/ThirdStep";
 import FourthStep from "../section/propertyListingForm/steps/FourthStep";
-import FifthStep from "../section/propertyListingForm/steps/FifthStep";
 import SixthStep from "../section/propertyListingForm/steps/SixthStep";
 import ReviewStep from "../section/propertyListingForm/steps/ReviewStep";
 import NavigationButtons from "../section/propertyListingForm/NavigationButtons";
 import MediaUploadStep from "../section/propertyListingForm/MediaUploadStep";
-import {
-  fields,
-  generateMediaCategories,
-  steps,
-} from "../assets/propertyListingForm";
+import { steps } from "../assets/propertyListingForm";
 import { usePropertyAPI } from "../hooks/useProperty";
 import { useToast } from "../context/ToastManager";
+import { usePropertyListingForm } from "../hooks/usePropertyListingForm";
 
 const PropertyListingForm = () => {
-  const [step, setStep] = useState(1);
-  const [errors, setErrors] = useState({});
-  const [formData, setFormData] = useState(fields);
-
   const { createProperty, isLoading } = usePropertyAPI();
+
+  const {
+    handleChange,
+    errors,
+    setErrors,
+    setFormData,
+    formData,
+    validateStep,
+    resetForm,
+    setCanProceedStep5,
+    checkingStep5,
+    setCheckingStep5,
+    step,
+    setStep,
+    removeContact,
+    addContact,
+    addPaymentPlan,
+    paymentPlans,
+    removePaymentPlan,
+  } = usePropertyListingForm();
+
   const { addToast } = useToast();
   const divRef = useRef(null);
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === "checkbox" ? checked : value;
-
-    setFormData((prev) => {
-      const updated = { ...prev };
-      const keys = name.replace(/\]/g, "").split(/\.|\[/); // supports dot + bracket syntax
-      let current = updated;
-
-      // Traverse nested structure
-      for (let i = 0; i < keys.length - 1; i++) {
-        const key = keys[i];
-        if (!current[key]) current[key] = {};
-        current = current[key];
-      }
-
-      // Assign value
-      current[keys[keys.length - 1]] = newValue;
-
-      return updated;
-    });
-
-    // Clear error if user edits that field
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: null }));
-    }
-  };
-
-  /** ✅ Validate per step */
-  const validateStep = (currentStep) => {
-    const newErrors = {};
-
-    if (currentStep === 1) {
-      if (!formData.title.trim()) newErrors.title = "Title is required";
-      if (!formData.description.trim())
-        newErrors.description = "Description is required";
-      if (!formData.propertyType)
-        newErrors.propertyType = "Property type is required";
-      if (!formData.listingType)
-        newErrors.listingType = "Listing type is required";
-
-      const requiresFlatType = [
-        "Flat/Apartment",
-        "Serviced Apartment",
-        "Block of Flats",
-      ];
-      if (
-        requiresFlatType.includes(formData.propertyType) &&
-        !formData.flatType
-      ) {
-        newErrors.flatType = "Flat type is required for this property type";
-      }
-    }
-
-    if (currentStep === 2) {
-      if (!formData.area.trim()) newErrors.area = "Area is required";
-      if (!formData.city.trim()) newErrors.city = "City is required";
-      if (!formData.state) newErrors.state = "State is required";
-    }
-
-    if (currentStep === 3) {
-      if (!formData.priceAmount || formData.priceAmount <= 0) {
-        newErrors.priceAmount = "Valid price is required";
-      }
-      if (formData.listingType === "For Sale" && !formData.transactionType) {
-        newErrors.transactionType =
-          "Transaction type is required for sale listings";
-      }
-      if (formData.listingType === "For Rent" && !formData.rentFrequency) {
-        newErrors.rentFrequency = "Rent frequency is required";
-      }
-    }
-
-    if (currentStep === 4) {
-      if (!formData.furnishingStatus)
-        newErrors.furnishingStatus = "Furnishing status is required";
-      if (!formData.propertyCondition)
-        newErrors.propertyCondition = "Property condition is required";
-      if (!formData.possessionStatus)
-        newErrors.possessionStatus = "Possession status is required";
-    }
-
-    // ✅ Step 5: Media Validation
-    if (currentStep === 5) {
-      const categories = generateMediaCategories(formData);
-      const media = formData.mediaByCategory || {};
-
-      categories.forEach((cat) => {
-        const images = media[cat.id] || [];
-        const min = cat.minImages || 0;
-
-        if (cat.required && images.length < min) {
-          newErrors[cat.id] = `At least ${min} ${
-            min === 1 ? "photo" : "photos"
-          } required for ${cat.label}`;
-        }
-      });
-
-      if (!media.cover || media.cover.length === 0) {
-        newErrors.cover = "Please upload a cover photo";
-      }
-    }
-
-    if (currentStep === 6) {
-      if (!formData.contactName.trim())
-        newErrors.contactName = "Contact name is required";
-      if (!formData.contactPhone.trim())
-        newErrors.contactPhone = "Contact phone is required";
-      if (!formData.contactEmail.trim())
-        newErrors.contactEmail = "Contact email is required";
-      if (!formData.contactRole)
-        newErrors.contactRole = "Contact role is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   /** 🚀 Submit to backend via hook */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateStep(step)) return;
+    const { isValid } = validateStep(step);
+    if (!isValid) return;
 
     try {
-      const res = await createProperty(formData);
+      const formDataToSend = new FormData();
+
+      // Allowed top-level fields
+      const allowedFields = [
+        "title",
+        "description",
+        "propertyType",
+        "listingType",
+        "furnishingStatus",
+        "propertyCondition",
+        "possessionStatus",
+        "availableFrom",
+        "transactionType",
+      ];
+
+      // Append allowed regular fields
+      allowedFields.forEach((key) => {
+        if (formData[key] !== undefined) {
+          formDataToSend.append(key, formData[key]);
+        }
+      });
+
+      // Append nested objects
+      formDataToSend.append(
+        "contactPerson",
+        JSON.stringify(formData.contactPerson)
+      );
+      formDataToSend.append("address", JSON.stringify(formData.address));
+      formDataToSend.append("price", JSON.stringify(formData.price));
+      formDataToSend.append(
+        "rentalDetails",
+        JSON.stringify(formData.rentalDetails)
+      );
+      formDataToSend.append(
+        "paymentPlans",
+        JSON.stringify(formData.paymentPlans)
+      );
+      formDataToSend.append(
+        "amenities",
+        JSON.stringify(formData.amenities || [])
+      );
+
+      // Append media files + metadata
+      formData.media.forEach((item) => {
+        if (item.file) {
+          formDataToSend.append("mediaFiles", item.file);
+          formDataToSend.append(
+            "mediaData",
+            JSON.stringify({
+              category: item.category,
+              type: item.type,
+              isPrimary: item.isPrimary,
+              caption: item.caption,
+            })
+          );
+        }
+      });
+
+      const res = await createProperty(formDataToSend);
 
       addToast("Property listing created successfully!", "success");
       console.log("Created property:", res.data);
-
-      // Optionally reset form
-      setFormData(fields);
-      setStep(1);
+      resetForm();
     } catch (err) {
       console.error(err);
       addToast(
@@ -172,7 +123,7 @@ const PropertyListingForm = () => {
     if (divRef.current && step > 1) {
       divRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [step, errors]);
+  }, [step]);
 
   return (
     <div className="min-h-screen" ref={divRef}>
@@ -233,6 +184,10 @@ const PropertyListingForm = () => {
               formData={formData}
               handleChange={handleChange}
               errors={errors}
+              setFormData={setFormData}
+              addPaymentPlan={addPaymentPlan}
+              paymentPlans={paymentPlans}
+              removePaymentPlan={removePaymentPlan}
             />
           )}
           {step === 4 && (
@@ -248,29 +203,34 @@ const PropertyListingForm = () => {
               setFormData={setFormData}
               errors={errors}
               setErrors={setErrors}
+              setCanProceedStep5={setCanProceedStep5}
+              checkingStep5={checkingStep5}
+              setCheckingStep5={setCheckingStep5}
             />
           )}
           {step === 6 && (
-            <FifthStep
-              formData={formData}
-              handleChange={handleChange}
-              setFormData={setFormData}
-            />
-          )}
-          {step === 7 && (
             <SixthStep
               formData={formData}
               handleChange={handleChange}
               errors={errors}
+              addContact={addContact}
+              removeContact={removeContact}
             />
           )}
-          {step === 8 && <ReviewStep formData={formData} />}
+          {step === 7 && (
+            <ReviewStep
+              formData={formData}
+              onSubmit={handleSubmit}
+              isLoading={isLoading("createProperty")}
+            />
+          )}
 
           <NavigationButtons
             setStep={setStep}
             step={step}
+            setCheckingStep5={setCheckingStep5}
             validateStep={validateStep}
-            isLoading={isLoading("createProperty")} // 🧠 using loading map
+            errors={errors}
           />
         </form>
       </div>

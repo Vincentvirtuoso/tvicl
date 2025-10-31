@@ -4,7 +4,7 @@ import clsx from "clsx";
 export const Loader = ({
   variant = "spinner",
   size = 40,
-  color = "#25aff3",
+  color = "#facc15",
   label = "",
   fullScreen = false,
   className = "",

@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LuBath, LuBed, LuCar, LuFiles, LuMapPin } from "react-icons/lu";
+import { LuBath, LuBed, LuCar, LuMapPin } from "react-icons/lu";
 import { MdOutlineSquareFoot } from "react-icons/md";
-import Divider from "../common/Divider";
 import { useNavigate } from "react-router-dom";
 import HighlightText from "../common/HighlightText";
 import CartQuantityUpdater from "../common/CartQuantityUpdater";
 import { FaHeart, FaImages, FaRegHeart } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
 import { useToast } from "../../context/ToastManager";
-import { FiChevronLeft, FiChevronRight, FiImage, FiX } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 
 const PropertyCard = ({ property = {}, query = "" }) => {
@@ -24,12 +23,14 @@ const PropertyCard = ({ property = {}, query = "" }) => {
     parkingSpaces = 0,
     sqFeet = 0,
     category = "For Sale",
-    cover = "",
+    // cover = "",
     location = {},
     type = "Apartment",
     gallery,
+    media = [],
   } = property;
 
+  const cover = media?.find((m) => m?.isPrimary) || "";
   const { address = "Address unavailable", city } = location;
 
   const { toggleFavorite, savedForLater = [] } = useCart();
@@ -162,11 +163,11 @@ const PropertyCard = ({ property = {}, query = "" }) => {
 
         <p className="text-sm text-gray-500 flex items-center gap-1">
           <LuMapPin className="text-gray-400" />
-          <span className='line-clamp-1'>
+          <span className="line-clamp-1">
             {address},{" "}
             {query ? <HighlightText text={city} query={query} /> : city},{" "}
             {location.state}
-        </span>
+          </span>
         </p>
 
         {/* --- Features --- */}
