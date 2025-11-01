@@ -74,7 +74,7 @@ const PropertyDetail = () => {
   const error = getError("propertyById");
 
   useEffect(() => {
-    fetchPropertyDetails("id");
+    fetchPropertyDetails(id);
   }, []);
 
   const property = data || {};
