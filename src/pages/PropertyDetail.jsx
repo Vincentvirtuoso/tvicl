@@ -1,380 +1,733 @@
-import React from "react";
-import { motion } from "framer-motion";
-import { useParams } from "react-router-dom";
-import { FaBed, FaBath, FaCar, FaRegFilePdf } from "react-icons/fa";
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FaBed,
+  FaBath,
+  FaCar,
+  FaRegFilePdf,
+  FaCheckCircle,
+  FaTimesCircle,
+} from "react-icons/fa";
 import {
   MdOutlineSquareFoot,
   MdHouseSiding,
-  MdOutlineTag,
+  MdSecurity,
+  MdWater,
+  MdElectricalServices,
+  MdLocalGasStation,
 } from "react-icons/md";
 import {
-  LuFile,
-  LuPlus,
-  LuMinus,
-  LuDoorOpen,
-  LuTag,
   LuMapPin,
   LuShieldCheck,
   LuCheck,
-  LuTags,
   LuConstruction,
-  LuLoaderPinwheel,
   LuPhone,
+  LuMail,
+  LuClock,
+  LuHouse,
+  LuBuilding,
+  LuCalendar,
+  LuTag,
+  LuChevronLeft,
+  LuChevronRight,
+  LuX,
+  LuLandmark,
+  LuSchool,
+  LuShoppingBag,
+  LuTrees,
 } from "react-icons/lu";
-import Divider from "../components/common/Divider";
-import { properties } from "../data/properties";
-import PropertyOverview from "../section/propertyDetail/PropertyOverview";
-import InfoCard from "../components/ui/InfoCard";
-import CartQuantityUpdater from "../components/common/CartQuantityUpdater";
-import EmptyState from "../components/common/EmptyState";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
+import { useParams } from "react-router-dom";
+import { usePropertyAPI } from "../hooks/useProperty";
+import PropertySkeleton from "../section/propertyDetail/PropertySkeleton";
+import NoPropertyData from "../section/propertyDetail/NoPropertyData";
 
-const PropertyDetail = ({ phone = "+234 810 234 5678" }) => {
-  const { id } = useParams();
-  const property = properties.find((p) => p.id.toString() === id);
-
-  if (!property) {
-    return <EmptyState message="Property not found" />;
+const getErrorMessage = (errorCode) => {
+  switch (errorCode) {
+    case "network":
+      return "We couldn’t connect to the server. Check your internet and try again.";
+    case "deleted":
+      return "This property has been removed or is no longer available.";
+    case "expired":
+      return "This listing has expired or is temporarily hidden.";
+    case "not_found":
+      return "We couldn’t find the property. Please check the link.";
+    case "server":
+      return "We’re experiencing issues fetching data. Try again shortly.";
+    default:
+      return "No property data available at this time.";
   }
+};
+
+const PropertyDetail = () => {
+  const { id } = useParams();
+
+  const {
+    propertyById: data,
+    fetchPropertyDetails,
+    isAnyLoading,
+    isLoading,
+    getError,
+  } = usePropertyAPI();
+
+  const error = getError("propertyById");
+
+  useEffect(() => {
+    fetchPropertyDetails("id");
+  }, []);
+
+  const property = data || {};
+
+  const [showLightbox, setShowLightbox] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const images = property?.media?.filter((m) => m.type === "image");
+  const coverImage = images?.find((m) => m.isPrimary) || images?.[0];
+  const galleryImages = images;
+  // ?.filter((m) => m.subCategory === "gallery");
+
+  const totalParking =
+    (property?.parking?.covered || 0) + (property?.parking?.open || 0);
+
+  const openLightbox = (index) => {
+    setLightboxIndex(index);
+    setShowLightbox(true);
+  };
+
+  const nextLightboxImage = () => {
+    setLightboxIndex((prev) => (prev + 1) % galleryImages?.length);
+  };
+
+  const prevLightboxImage = () => {
+    setLightboxIndex(
+      (prev) => (prev - 1 + galleryImages?.length) % galleryImages?.length
+    );
+  };
+
+  const formatCurrency = (amount) => {
+    return `₦${amount?.toLocaleString() || 0}`;
+  };
+
+  useBodyScrollLock(showLightbox);
+
+  if (isLoading("propertyById") || isAnyLoading) return <PropertySkeleton />;
+
+  if (error && !data) {
+    return (
+      <NoPropertyData
+        message={getErrorMessage(error?.code)}
+        onRetry={() => fetchPropertyDetails(id)}
+      />
+    );
+  }
+
   return (
-    <section className="min-h-screen bg-gray-50 py-10 px-4 md:px-10">
-      {/* ===== HERO IMAGE ===== */}
+    <section className="min-h-screen bg-gray-50 py-6 px-4 md:px-8 lg:px-12">
+      {/* ===== BREADCRUMB ===== */}
+      <div className="max-w-7xl mx-auto mb-4 text-sm text-gray-600">
+        <span>Home</span> / <span>Properties</span> /{" "}
+        <span className="text-gray-900 font-medium">
+          {property.propertyType}
+        </span>
+      </div>
+
+      {/* ===== HERO SECTION WITH GALLERY ===== */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        className="relative w-full h-[420px] rounded-3xl overflow-hidden shadow-lg"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-7xl mx-auto"
       >
-        <img
-          src={property.cover}
-          alt={property.name}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-
-        {/* STATUS + TYPE BADGES */}
-        <div className="absolute top-6 left-6 flex gap-2">
-          <span className="bg-secondary text-white text-xs px-3 py-1 rounded-full uppercase shadow">
-            {property.status}
-          </span>
-          <span className="bg-white/20 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full border border-white/30">
-            {property.type}
-          </span>
-        </div>
-
-        {/* TITLE */}
-        <div className="absolute bottom-6 left-6 text-white">
-          <motion.h1
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-3xl md:text-4xl font-bold"
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
+          {/* Main Image - Takes up 3 columns */}
+          <motion.div
+            className="lg:col-span-3 relative rounded-2xl overflow-hidden cursor-pointer group aspect-[16/10] lg:aspect-auto lg:row-span-2"
+            onClick={() => openLightbox(0)}
+            whileHover={{ scale: 1.01 }}
           >
-            {property.name}
-          </motion.h1>
-          <p className="text-gray-200 mt-1 flex items-center gap-2">
-            <LuMapPin />{" "}
-            {`${property.location.address}, ${property.location.city}, ${property.location.state}, ${property.location.country}`}
-          </p>
+            <img
+              src={coverImage?.url}
+              alt={property.title}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+
+            {/* Badges */}
+            <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+              <span className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-full font-medium shadow-lg">
+                {property.listingType}
+              </span>
+              <span className="bg-white/90 backdrop-blur-sm text-gray-800 text-xs px-3 py-1.5 rounded-full font-medium shadow-lg">
+                {property.propertyType}
+              </span>
+              {property.isVerified && (
+                <span className="bg-green-500 text-white text-xs px-3 py-1.5 rounded-full font-medium shadow-lg flex items-center gap-1">
+                  <LuShieldCheck size={14} /> Verified
+                </span>
+              )}
+            </div>
+
+            {/* Stats Overlay */}
+            <div className="absolute not-sm:bottom-4 sm:top-4 right-4 flex gap-2">
+              <span className="bg-black/50 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1">
+                👁️ {property.views}
+              </span>
+              <span className="bg-black/50 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1">
+                ❤️ {property.saves}
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Side Gallery - 4 images in a single column */}
+          {galleryImages?.slice(0, 4).map((img, idx) => (
+            <motion.div
+              key={idx}
+              className="relative rounded-2xl overflow-hidden cursor-pointer group aspect-[4/3] lg:aspect-auto"
+              onClick={() => openLightbox(idx + 1)}
+              whileHover={{ scale: 1.02 }}
+            >
+              <img
+                src={img.url}
+                alt={`Gallery ${idx + 1}`}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              {idx === 3 && galleryImages.length > 4 && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                  <span className="text-white text-2xl font-bold">
+                    +{galleryImages.length - 4} More
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          ))}
         </div>
       </motion.div>
 
-      {/* ===== MAIN GRID ===== */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
-        {/* ===== LEFT SECTION ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg"
-        >
-          {/* PRICE + CATEGORY */}
-          <div className="flex flex-wrap items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500">Price</p>
-              <p className="text-2xl font-bold text-secondary flex items-center gap-1">
-                <LuTag />
-                &#8358;{property.price?.toLocaleString() || 0}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                &#8358;{property.pricePerSqFt?.toLocaleString() || 0} per sq.
-                ft.
-              </p>
-            </div>
-            <span className="bg-primary text-sm px-4 py-2 rounded-full font-semibold shadow-sm">
-              {property.category}
-            </span>
-          </div>
-
-          <Divider align="left" width="w-24" />
-
-          {/* STATS */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-gray-700">
-            <InfoCard
-              icon={FaBed}
-              label="Bedrooms"
-              value={property.bedrooms}
-              direction="column"
-              bordered
-              size="md"
-            />
-            <InfoCard
-              icon={FaBath}
-              label="Bathrooms"
-              value={property.bathrooms}
-              direction="column"
-              bordered
-              size="md"
-            />
-            <InfoCard
-              icon={FaCar}
-              label="Parking"
-              value={property.parkingSpaces}
-              direction="column"
-              bordered
-              size="md"
-            />
-            <InfoCard
-              icon={MdOutlineSquareFoot}
-              label="Square Feet"
-              value={property.sqFeet?.toLocaleString() || 0}
-              direction="column"
-              bordered
-              size="md"
-            />
-            <InfoCard
-              icon={LuLoaderPinwheel}
-              label="Status"
-              value={property.status}
-              direction="column"
-              bordered
-              size="md"
-            />
-            {property.lotSize && (
-              <InfoCard
-                icon={MdHouseSiding}
-                label="Lot Size"
-                value={property.lotSize}
-                direction="column"
-                bordered
-                size="md"
-              />
-            )}
-            {property.units && (
-              <InfoCard
-                icon={LuDoorOpen}
-                label="Units"
-                value={property.units}
-                direction="column"
-                bordered
-                size="md"
-              />
-            )}
-            {property.builtYear && (
-              <InfoCard
-                icon={LuConstruction}
-                label="Built Year"
-                value={property.builtYear}
-                direction="column"
-                bordered
-                size="md"
-              />
-            )}
-          </div>
-
-          {/* DESCRIPTION */}
-          <PropertyOverview overview={property.longDescription} />
-
-          {/* DOCUMENTS */}
-          {property.documents?.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="mt-8"
-            >
-              <h2 className="text-xl font-semibold mb-3 flex items-center gap-2 text-secondary">
-                <LuFile /> Documents
-              </h2>
-              <ul className="space-y-2">
-                {property.documents.map((doc, i) => (
-                  <motion.li
-                    key={i}
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-3 p-3 border border-secondary/40 hover:border-secondary rounded-lg hover:bg-gray-300/10 transition"
-                  >
-                    <FaRegFilePdf className="text-red-500" />
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:underline text-gray-800"
-                    >
-                      {doc.name}
-                    </a>
-                    {doc.verified && (
-                      <span className="ml-auto text-xs flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                        <LuShieldCheck size={14} /> Verified
-                      </span>
-                    )}
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
-          )}
-
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-secondary">
-              <LuMapPin /> Location
-            </h3>
-            <iframe
-              title="Property Map"
-              width="100%"
-              height="250"
-              loading="lazy"
-              style={{ borderRadius: "12px" }}
-              src={`https://www.google.com/maps?q=${property.location.coordinates[0]},${property.location.coordinates[1]}&z=15&output=embed`}
-            ></iframe>
-          </div>
-        </motion.div>
-
-        {/* ===== RIGHT SIDEBAR ===== */}
-        <motion.aside
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="bg-white p-6 rounded-2xl shadow-lg flex flex-col"
-        >
-          {/* GALLERY */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Gallery</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {property.gallery.slice(0, 6).map((img, i) => (
-                <motion.img
-                  key={i}
-                  src={img}
-                  alt={`Gallery ${i}`}
-                  className="w-full h-24 object-cover rounded-lg cursor-pointer hover:scale-102 transition-transform"
-                  whileHover={{ scale: 1.05 }}
-                />
-              ))}
-            </div>
-          </div>
-
-          <Divider align="center" />
-
-          {/* CART SECTION */}
-          <CartQuantityUpdater
-            property={property}
-            className="justify-center"
-            textSize="text-sm"
-          />
-
-          <a
-            href={`tel:${phone}`}
-            className="flex bg-secondary justify-center items-center py-2.5 px-4 mt-4 rounded-full text-semibold text-gray-50"
+      {/* ===== MAIN CONTENT ===== */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+        {/* ===== LEFT: MAIN DETAILS ===== */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Title & Location */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl p-6 shadow-sm"
           >
-            <LuPhone className="shrink-0 text-xl mr-2" /> Make Inquiries
-          </a>
+            <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  {property.title}
+                </h1>
+                <p className="text-gray-600 flex items-start gap-2 mb-2">
+                  <LuMapPin className="mt-1 shrink-0" />
+                  <span>
+                    {property.address?.street &&
+                      `${property.address?.street}, `}
+                    {property.address?.area}, {property.address?.city},{" "}
+                    {property.address?.state}
+                  </span>
+                </p>
+                {property.address?.landmark && (
+                  <p className="text-sm text-gray-500 flex items-center gap-1 ml-6">
+                    <LuLandmark size={14} /> Near {property.address?.landmark}
+                  </p>
+                )}
+              </div>
 
-          {/* TAGS */}
-          {property.tags?.length > 0 && (
-            <div className="mt-6 flex flex-wrap gap-2">
-              {property.tags.map((tag, i) => (
-                <span
-                  key={i}
-                  className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full border border-gray-500/20 flex items-center gap-1.5"
+              <div className="text-right flex-1">
+                <p className="text-3xl font-bold text-secondary">
+                  {formatCurrency(property.price?.amount || 0)}
+                </p>
+                {property.price?.negotiable && (
+                  <span className="text-sm text-green-600 font-medium">
+                    Negotiable
+                  </span>
+                )}
+                {property?.floorSize?.value > 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    {formatCurrency(
+                      Math.round(
+                        property.price?.amount / property.floorSize?.value || 0
+                      )
+                    )}{" "}
+                    per {property.floorSize?.unit}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <FaBed className="text-blue-600 text-xl" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Bedrooms</p>
+                  <p className="text-lg font-bold">{property.bedrooms}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-purple-100 rounded-lg">
+                  <FaBath className="text-purple-600 text-xl" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Bathrooms</p>
+                  <p className="text-lg font-bold">{property.bathrooms}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-green-100 rounded-lg">
+                  <FaCar className="text-green-600 text-xl" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Parking</p>
+                  <p className="text-lg font-bold">{totalParking}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-orange-100 rounded-lg">
+                  <MdOutlineSquareFoot className="text-orange-600 text-xl" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Area</p>
+                  <p className="text-lg font-bold">
+                    {property.floorSize?.value}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Description */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-2xl p-6 shadow-sm"
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <LuHouse /> Property Overview
+            </h2>
+            <p className="text-gray-700 leading-relaxed">
+              {property.description}
+            </p>
+          </motion.div>
+
+          {/* Property Details Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-2xl p-6 shadow-sm"
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <LuBuilding /> Property Details
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <DetailItem label="Property Type" value={property.propertyType} />
+              <DetailItem label="Flat Type" value={property.flatType} />
+              <DetailItem label="Listing Type" value={property.listingType} />
+              <DetailItem
+                label="Transaction Type"
+                value={property.transactionType}
+              />
+              <DetailItem
+                label="Furnishing"
+                value={property.furnishingStatus}
+              />
+              <DetailItem
+                label="Condition"
+                value={property.propertyCondition}
+              />
+              <DetailItem label="Status" value={property.possessionStatus} />
+              <DetailItem label="Year Built" value={property.yearBuilt} />
+              <DetailItem
+                label="Floor Size"
+                value={`${property.floorSize?.value} ${property.floorSize?.unit}`}
+              />
+              <DetailItem
+                label="Carpet Area"
+                value={`${property.carpetArea?.value} ${property.carpetArea?.unit}`}
+              />
+              <DetailItem label="Facing" value={property.facing} />
+              <DetailItem label="Kitchens" value={property.kitchens} />
+              <DetailItem label="Balconies" value={property.balconies} />
+              <DetailItem
+                label="Floors"
+                value={`${property.floor} of ${property.totalFloors}`}
+              />
+              <DetailItem
+                label="Covered Parking"
+                value={property.parking?.covered}
+              />
+              <DetailItem label="Open Parking" value={property.parking?.open} />
+            </div>
+          </motion.div>
+
+          {/* Amenities */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white rounded-2xl p-6 shadow-sm"
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <LuCheck /> Amenities
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {property.amenities?.map((amenity, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg"
                 >
-                  <LuTags />
-                  {tag}
-                </span>
+                  <LuCheck className="text-green-600 shrink-0" />
+                  <span className="text-sm text-gray-800">{amenity}</span>
+                </div>
               ))}
             </div>
-          )}
+          </motion.div>
 
-          {/* FEATURES */}
-          {property.features?.length > 0 && (
+          {/* Utilities */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white rounded-2xl p-6 shadow-sm"
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <MdElectricalServices /> Utilities & Infrastructure
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+                <MdWater className="text-blue-600 text-2xl" />
+                <div>
+                  <p className="text-sm text-gray-500">Water Supply</p>
+                  <p className="font-semibold">
+                    {property.utilities?.waterSupply}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg">
+                <MdElectricalServices className="text-yellow-600 text-2xl" />
+                <div>
+                  <p className="text-sm text-gray-500">Power Backup</p>
+                  <p className="font-semibold">
+                    {property.utilities?.powerBackup}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
+                <MdLocalGasStation className="text-red-600 text-2xl" />
+                <div>
+                  <p className="text-sm text-gray-500">Gas</p>
+                  <p className="font-semibold">{property.utilities?.gas}</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Nearby Places */}
+          {property.nearbyPlaces && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="my-5"
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-white rounded-2xl p-6 shadow-sm"
             >
-              <h2 className="text-xl font-semibold mb-3 flex items-center gap-2 text-secondary">
-                <LuDoorOpen /> Features
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <LuMapPin /> Nearby Places
               </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {property.features.map((feature, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2 bg-emerald-300/10 border border-emerald-500/30 rounded-lg px-3 py-2"
-                  >
-                    <LuCheck className="text-emerald-400 text-xl" />
-                    <span className="text-gray-700 text-sm font-medium truncate ">
-                      {feature}
-                    </span>
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {property.nearbyPlaces?.schools?.length > 0 && (
+                  <NearbySection
+                    icon={<LuSchool className="text-blue-600" />}
+                    title="Schools"
+                    places={property.nearbyPlaces.schools}
+                  />
+                )}
+                {property.nearbyPlaces?.hospitals?.length > 0 && (
+                  <NearbySection
+                    icon={<span className="text-red-600">🏥</span>}
+                    title="Hospitals"
+                    places={property.nearbyPlaces.hospitals}
+                  />
+                )}
+                {property.nearbyPlaces.shoppingCenters?.length > 0 && (
+                  <NearbySection
+                    icon={<LuShoppingBag className="text-purple-600" />}
+                    title="Shopping Centers"
+                    places={property.nearbyPlaces.shoppingCenters}
+                  />
+                )}
+                {property.nearbyPlaces.transport?.length > 0 && (
+                  <NearbySection
+                    icon={<span className="text-orange-600">🚌</span>}
+                    title="Transport"
+                    places={property.nearbyPlaces.transport}
+                  />
+                )}
               </div>
             </motion.div>
           )}
 
-          {property.lease && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="mb-5 bg-gray-50 border border-gray-200 rounded-xl p-4"
-            >
-              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-secondary">
-                <LuTag /> Lease Information
+          {/* Legal Documents */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="bg-white rounded-2xl p-6 shadow-sm"
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <FaRegFilePdf className="text-red-600" /> Legal Documents
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <LegalDocItem
+                label="Certificate of Occupancy (C of O)"
+                present={property.legalDocuments?.cOfO?.present}
+                verified={property.legalDocuments?.cOfO?.verifiedAt}
+              />
+              <LegalDocItem
+                label="Governor's Consent"
+                present={property.legalDocuments?.governorsConsent?.present}
+                verified={property.legalDocuments?.governorsConsent?.verifiedAt}
+              />
+              <LegalDocItem
+                label="Survey Plan"
+                present={property.legalDocuments?.surveyPlan?.present}
+                verified={property.legalDocuments?.surveyPlan?.verifiedAt}
+              />
+              <LegalDocItem
+                label="Deed of Assignment"
+                present={property.legalDocuments?.deedOfAssignment?.present}
+                verified={property.legalDocuments?.deedOfAssignment?.verifiedAt}
+              />
+              <LegalDocItem
+                label="Excision"
+                present={property.legalDocuments?.excision?.present}
+                verified={property.legalDocuments?.excision?.verifiedAt}
+              />
+            </div>
+          </motion.div>
+
+          {/* Map */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="bg-white rounded-2xl p-6 shadow-sm"
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <LuMapPin /> Location
+            </h2>
+            <div className="rounded-xl overflow-hidden h-[350px]">
+              <iframe
+                title="Property Map"
+                width="100%"
+                height="100%"
+                loading="lazy"
+                src={`https://www.google.com/maps?q=${property.location?.coordinates?.[1]},${property.location?.coordinates?.[0]}&z=15&output=embed`}
+              />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ===== RIGHT: SIDEBAR ===== */}
+        <motion.aside
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="space-y-6"
+        >
+          {/* Contact Agent */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              Contact Agent
+            </h3>
+            {property.contactPerson?.map((contact, idx) => (
+              <div key={idx} className="mb-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-14 h-14 rounded-full bg-secondary/10 flex items-center justify-center text-secondary text-xl font-bold">
+                    {contact.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {contact.name}
+                    </p>
+                    <p className="text-sm text-gray-500">{contact.role}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <a
+                    href={`tel:${contact.phone}`}
+                    className="flex items-center justify-center gap-2 w-full bg-secondary text-white py-3 rounded-xl font-medium hover:bg-secondary/90 transition"
+                  >
+                    <LuPhone /> Call Now
+                  </a>
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="flex items-center justify-center gap-2 w-full bg-gray-100 text-gray-800 py-3 rounded-xl font-medium hover:bg-gray-200 transition"
+                  >
+                    <LuMail /> Send Email
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Highlights */}
+          {property.highlights?.length > 0 && (
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                Key Highlights
               </h3>
-              <ul className="grid grid-cols-2 gap-2 text-sm text-gray-700">
-                <li>
-                  <strong>Rent Type:</strong> {property.lease.rentType}
-                </li>
-                <li>
-                  <strong>Duration:</strong> {property.lease.duration}
-                </li>
-                <li>
-                  <strong>Deposit Required:</strong>{" "}
-                  {property.lease.depositRequired ? "Yes" : "No"}
-                </li>
-                <li>
-                  <strong>Furnished:</strong>{" "}
-                  {property.lease.furnished ? "Yes" : "No"}
-                </li>
-                <li>
-                  <strong>Utilities Included:</strong>{" "}
-                  {property.lease.utilitiesIncluded ? "Yes" : "No"}
-                </li>
-              </ul>
-            </motion.div>
+              <div className="space-y-2">
+                {property.highlights.map((highlight, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2 text-gray-700"
+                  >
+                    <span className="w-1.5 h-1.5 bg-secondary rounded-full" />
+                    <span className="text-sm">{highlight}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
-          {/* AGENT INFO */}
-          <div className="mt-auto p-4 border rounded-xl bg-gray-50 border-gray-500/20">
-            <h3 className="text-lg font-semibold mb-3">Property Agent</h3>
-            <div className="flex items-center gap-3">
-              <img
-                src={`${property.agent.photo || "/images/logo.png"}`}
-                alt={property.agent.name}
-                className="w-12 h-12 rounded-full object-cover grayscale-80"
-              />
-              <div>
-                <p className="font-medium text-gray-800">
-                  {property.agent.name}
-                </p>
+          {/* Property Info */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              Property Info
+            </h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                <span className="text-gray-600">Property ID</span>
+                <span className="font-medium">{property.propertyId}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                <span className="text-gray-600">Available From</span>
+                <span className="font-medium">
+                  {new Date(property.availableFrom).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                <span className="text-gray-600">Area (LGA)</span>
+                <span className="font-medium">{property.address?.lga}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-gray-600">Postal Code</span>
+                <span className="font-medium">
+                  {property.address?.postalCode}
+                </span>
               </div>
             </div>
           </div>
         </motion.aside>
       </div>
+
+      {/* Lightbox */}
+      <AnimatePresence>
+        {showLightbox && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+            onClick={() => setShowLightbox(false)}
+          >
+            <button
+              onClick={() => setShowLightbox(false)}
+              className="absolute top-4 right-4 p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition z-10"
+            >
+              <LuX className="text-white text-2xl" />
+            </button>
+
+            <div
+              className="max-w-6xl w-full h-[80vh] relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={galleryImages[lightboxIndex]?.url}
+                alt={`Gallery ${lightboxIndex + 1}`}
+                className="w-full h-full object-contain rounded-lg"
+              />
+
+              {galleryImages.length > 1 && (
+                <>
+                  <button
+                    onClick={prevLightboxImage}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition"
+                  >
+                    <LuChevronLeft className="text-white text-2xl" />
+                  </button>
+
+                  <button
+                    onClick={nextLightboxImage}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition"
+                  >
+                    <LuChevronRight className="text-white text-2xl" />
+                  </button>
+
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
+                    {lightboxIndex + 1} / {galleryImages.length}
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
+
+// Helper Components
+const DetailItem = ({ label, value }) => (
+  <div className="p-3 bg-gray-50 rounded-lg">
+    <p className="text-xs text-gray-500 mb-1">{label}</p>
+    <p className="font-semibold text-gray-900">{value}</p>
+  </div>
+);
+
+const LegalDocItem = ({ label, present, verified }) => (
+  <div className="flex items-start justify-between p-4 border border-gray-200 rounded-lg">
+    <div className="flex-1">
+      <p className="text-sm font-medium text-gray-900 mb-1">{label}</p>
+      <div className="flex items-center gap-2">
+        {present ? (
+          <span className="text-xs text-green-600 flex items-center gap-1">
+            <FaCheckCircle /> Available
+          </span>
+        ) : (
+          <span className="text-xs text-red-600 flex items-center gap-1">
+            <FaTimesCircle /> Not Available
+          </span>
+        )}
+        {verified && (
+          <span className="text-xs text-blue-600 flex items-center gap-1">
+            <LuShieldCheck size={12} /> Verified
+          </span>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+const NearbySection = ({ icon, title, places }) => (
+  <div>
+    <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+      {icon} {title}
+    </h4>
+    <div className="space-y-2">
+      {places.map((place, idx) => (
+        <div key={idx} className="flex items-center justify-between text-sm">
+          <span className="text-gray-700">{place.name}</span>
+          <span className="text-gray-500 text-xs">{place.distance}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 export default PropertyDetail;

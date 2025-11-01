@@ -96,6 +96,7 @@ const PropertyListingForm = () => {
             "mediaData",
             JSON.stringify({
               category: item.category,
+              subCategory: item.subCategory,
               type: item.type,
               isPrimary: item.isPrimary,
               caption: item.caption,

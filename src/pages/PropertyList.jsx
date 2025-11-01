@@ -50,7 +50,7 @@ const PropertyList = () => {
     searchProperties(searchTerm);
   }, [searchTerm, searchProperties]);
 
-  const properties = data?.properties || [...dummyProperties];
+  const properties = data?.properties || [];
 
   const popularAmenities = [
     "Generator",

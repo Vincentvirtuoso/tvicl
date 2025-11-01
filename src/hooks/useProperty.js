@@ -2,9 +2,11 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import api from "../api/axiosInstance";
 
 export const usePropertyAPI = (userId = null, debounceMs = 400) => {
+  // 1. Removed redundant 'propertyById' state
   const [data, setData] = useState({});
-  const [loadingMap, setLoadingMap] = useState({}); // 🆕 loading per key
-  const [errorMap, setErrorMap] = useState({}); // 🆕 error per key
+
+  const [loadingMap, setLoadingMap] = useState({});
+  const [errorMap, setErrorMap] = useState({});
   const controllerRef = useRef(null);
   const debounceTimer = useRef(null);
   const cache = useRef({});
@@ -19,7 +21,6 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
     async (endpoint, key, params = {}, options = {}) => {
       const cacheKey = `${endpoint}-${JSON.stringify(params)}`;
 
-      // Serve cached data instantly if available
       if (cache.current[cacheKey]) {
         setData((prev) => ({ ...prev, [key]: cache.current[cacheKey] }));
         return;
@@ -30,7 +31,6 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
       controllerRef.current = controller;
 
       try {
-        // 🆕 Start loading for this key
         setLoadingMap((prev) => ({ ...prev, [key]: true }));
         setErrorMap((prev) => ({ ...prev, [key]: null }));
 
@@ -45,13 +45,16 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
         cache.current[cacheKey] = result;
       } catch (err) {
         if (err?.name !== "AbortError") {
+          // 3. Improved error handling for server response
+          const errorMessage =
+            err.response?.data || err.message || "Failed to fetch data";
+
           setErrorMap((prev) => ({
             ...prev,
-            [key]: err?.message || "Failed to fetch data",
+            [key]: errorMessage,
           }));
         }
       } finally {
-        // 🆕 Stop loading for this key
         setLoadingMap((prev) => ({ ...prev, [key]: false }));
       }
     },
@@ -85,6 +88,7 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
   const fetchAnalytics = useCallback(() => {
     Promise.all([
       fetchData("analytics/trending", "trending"),
+      // Ensure userId is used for the endpoint
       fetchData(`analytics/recommend/${userId}`, "recommended"),
       fetchData("analytics/top-searches", "topSearches"),
       fetchData("analytics/top-viewed", "topViewed"),
@@ -102,6 +106,10 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
   const searchProperties = (query) =>
     debouncedFetch("", "properties", { search: query });
 
+  const fetchPropertyDetails = (id) => {
+    return fetchData(`${id}`, "propertyById");
+  };
+
   // 🧹 Cleanup
   useEffect(() => cancelOngoing, []);
 
@@ -109,20 +117,32 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
   const isLoading = (key) => !!loadingMap[key];
   const getError = (key) => errorMap[key];
 
+  // 4. Added global status helpers
+  const isAnyLoading = Object.values(loadingMap).some(Boolean);
+  const hasAnyError = Object.values(errorMap).some(Boolean);
+
   return {
     data,
+    // Access propertyById directly from the central 'data' state
+    propertyById: data.propertyById,
+
     loadingMap,
     errorMap,
     isLoading,
     getError,
+    isAnyLoading, // Helper
+    hasAnyError, // Helper
+
     createProperty,
     updateProperty,
     deleteProperty,
     restoreProperty,
     verifyProperty,
+
     fetchAnalytics,
     fetchRelated,
     searchProperties,
+    fetchPropertyDetails, // Now included and functional
     refetch: fetchAnalytics,
   };
 };

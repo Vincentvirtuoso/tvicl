@@ -13,25 +13,57 @@ import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 
 const PropertyCard = ({ property = {}, query = "" }) => {
   const {
-    id,
-    name = "Untitled Property",
-    price = 0,
+    _id,
+    propertyId,
+    title = "Untitled Property",
+    price = {},
     bedrooms = 0,
     bathrooms = 0,
-    lease,
-    status,
-    parkingSpaces = 0,
-    sqFeet = 0,
-    category = "For Sale",
-    // cover = "",
-    location = {},
-    type = "Apartment",
-    gallery,
+    parking = {},
+    floorSize = {},
+    listingType = "For Sale",
+    propertyType = "Apartment",
+    address = {},
     media = [],
+    rentalDetails = {},
+    furnishingStatus,
+    propertyCondition,
+    amenities = [],
   } = property;
 
-  const cover = media?.find((m) => m?.isPrimary) || "";
-  const { address = "Address unavailable", city } = location;
+  // Extract pricing info
+  const priceAmount = price?.amount || 0;
+  const isNegotiable = price?.negotiable || false;
+
+  // Extract location info
+  const {
+    street = "",
+    area = "Address unavailable",
+    city = "",
+    state = "",
+    landmark = "",
+  } = address;
+
+  // Get cover image (primary media)
+  const coverImage = media?.find((m) => m?.isPrimary)?.url || "";
+
+  // Get gallery images (excluding videos and documents)
+  const galleryImages =
+    media?.filter((m) => m?.type === "image")?.map((m) => m.url) || [];
+
+  // Calculate total parking spaces
+  const totalParkingSpaces = (parking?.covered || 0) + (parking?.open || 0);
+
+  // Get floor size value
+  const sqFeet = floorSize?.value || 0;
+  const sizeUnit = floorSize?.unit || "sqft";
+
+  // Rental specific info
+  const rentFrequency = rentalDetails?.rentFrequency || "Monthly";
+  const isFurnished =
+    furnishingStatus === "Fully Furnished" ||
+    furnishingStatus === "Semi-Furnished";
+  const depositRequired = rentalDetails?.depositAmount > 0;
 
   const { toggleFavorite, savedForLater = [] } = useCart();
   const { addToast } = useToast();
@@ -45,9 +77,12 @@ const PropertyCard = ({ property = {}, query = "" }) => {
     index: 0,
   });
 
-  const handleViewDetails = () => navigate(`/property/${id}/details`);
+  const handleViewDetails = () =>
+    navigate(`/property/${propertyId || _id}/details`);
 
-  const isSavedForLater = savedForLater.find((item) => item.id === id);
+  const isSavedForLater = savedForLater.find(
+    (item) => item._id === _id || item.propertyId === propertyId
+  );
 
   const handleSaveForLater = () => {
     toggleFavorite(property);
@@ -72,6 +107,18 @@ const PropertyCard = ({ property = {}, query = "" }) => {
 
   useBodyScrollLock(activeGallery.open);
 
+  // Get status badge
+  const getStatusBadge = () => {
+    if (property.possessionStatus === "Ready to Move") {
+      return { text: "Available", color: "bg-green-500 text-white" };
+    } else if (property.possessionStatus === "Under Construction") {
+      return { text: "Under Construction", color: "bg-orange-500 text-white" };
+    }
+    return { text: "Available", color: "bg-green-500 text-white" };
+  };
+
+  const statusBadge = getStatusBadge();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -86,8 +133,8 @@ const PropertyCard = ({ property = {}, query = "" }) => {
           <div className="absolute inset-0 animate-pulse bg-gray-200" />
         )}
         <motion.img
-          src={`${cover || "/placeholder-house.jpg"}`}
-          alt={name}
+          src={coverImage || "/placeholder-house.jpg"}
+          alt={title}
           className="w-full h-full object-cover"
           onLoad={() => setImgLoaded(true)}
           initial={{ scale: 1.1 }}
@@ -101,48 +148,46 @@ const PropertyCard = ({ property = {}, query = "" }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            {category}
+            {listingType}
           </motion.span>
           <motion.span
-            className=" bg-gray-200 border border-gray-500/30 text-gray-600 text-xs font-medium px-3 py-1 rounded-full shadow"
+            className="bg-gray-200 border border-gray-500/30 text-gray-600 text-xs font-medium px-3 py-1 rounded-full shadow"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            {type}
+            {propertyType}
           </motion.span>
           <motion.span
-            className={`${
-              property.status === "Available"
-                ? "bg-green-500 text-white"
-                : "bg-gray-200 text-gray-300"
-            } border border-gray-500/30 text-gray-600 text-xs font-medium px-3 py-1 rounded-full shadow`}
+            className={`${statusBadge.color} border border-gray-500/30 text-xs font-medium px-3 py-1 rounded-full shadow`}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            {status}
+            {statusBadge.text}
           </motion.span>
         </div>
-        <button
-          onClick={() => openGallery([cover, ...gallery], 0)}
-          className="absolute right-3 bottom-3 text-sm text-gray-500 p-3 rounded-full bg-secondary text-white underline"
-        >
-          <FaImages />
-        </button>
+        {galleryImages.length > 0 && (
+          <button
+            onClick={() => openGallery([coverImage, ...galleryImages], 0)}
+            className="absolute right-3 bottom-3 text-sm text-gray-500 p-3 rounded-full bg-secondary text-white underline"
+          >
+            <FaImages />
+          </button>
+        )}
       </div>
 
       {/* --- Content --- */}
       <div className="flex flex-col flex-1 px-5 pt-4">
         <div className="flex gap-2">
-          <p className="text-lg font-semibold text-gray-800 mb-1 flex flex-1 items-center">
-            &#8358;{price.toLocaleString()}
-            {category === "For Rent" && (
+          <p className="text-lg font-semibold text-gray-800 mb-1 flex flex-1 items-center gap-1">
+            &#8358;{priceAmount.toLocaleString()}
+            {isNegotiable && (
+              <span className="text-xs text-gray-500">(Negotiable)</span>
+            )}
+            {listingType === "For Rent" && (
               <>
-                /
-                <span className="text-xs">
-                  {lease.rentType?.replace(/ly$/, "")?.toLowerCase()}
-                </span>
+                <span className="text-xs">/{rentFrequency.toLowerCase()}</span>
               </>
             )}
           </p>
@@ -158,51 +203,87 @@ const PropertyCard = ({ property = {}, query = "" }) => {
           </button>
         </div>
         <h3 className="text-lg font-bold text-gray-900 hover:text-secondary transition-colors line-clamp-1">
-          {query ? <HighlightText text={name} query={query} /> : name}
+          {query ? <HighlightText text={title} query={query} /> : title}
         </h3>
 
         <p className="text-sm text-gray-500 flex items-center gap-1">
           <LuMapPin className="text-gray-400" />
           <span className="line-clamp-1">
-            {address},{" "}
-            {query ? <HighlightText text={city} query={query} /> : city},{" "}
-            {location.state}
+            {area}
+            {city &&
+              `, ${query ? <HighlightText text={city} query={query} /> : city}`}
+            {state && `, ${state}`}
           </span>
         </p>
 
         {/* --- Features --- */}
         <div className="flex flex-wrap items-center gap-4 text-gray-600 text-xs my-4">
-          <div className="flex items-center gap-1">
-            <LuBed className="w-4 h-4" /> {bedrooms} Beds
-          </div>
-          <div className="flex items-center gap-1">
-            <LuBath className="w-4 h-4" /> {bathrooms} Baths
-          </div>
-          <div className="flex items-center gap-1">
-            <LuCar className="w-4 h-4" /> {parkingSpaces} Parking
-          </div>
-          <div className="flex items-center gap-1">
-            <MdOutlineSquareFoot className="w-4 h-4" />{" "}
-            {sqFeet.toLocaleString()} sq. ft.
-          </div>
+          {bedrooms > 0 && (
+            <div className="flex items-center gap-1">
+              <LuBed className="w-4 h-4" /> {bedrooms} Beds
+            </div>
+          )}
+          {bathrooms > 0 && (
+            <div className="flex items-center gap-1">
+              <LuBath className="w-4 h-4" /> {bathrooms} Baths
+            </div>
+          )}
+          {totalParkingSpaces > 0 && (
+            <div className="flex items-center gap-1">
+              <LuCar className="w-4 h-4" /> {totalParkingSpaces} Parking
+            </div>
+          )}
+          {sqFeet > 0 && (
+            <div className="flex items-center gap-1">
+              <MdOutlineSquareFoot className="w-4 h-4" />
+              {sqFeet.toLocaleString()} {sizeUnit}
+            </div>
+          )}
         </div>
-        {/* --- Lease Info --- */}
-        {lease && (
+
+        {/* --- Rental/Lease Info --- */}
+        {listingType === "For Rent" && rentalDetails && (
           <div className="mb-4 text-xs text-gray-600 flex flex-wrap gap-2">
             <span className="bg-gray-100 px-2 py-1 rounded-md border border-gray-300/50">
-              {lease.rentType}
+              {rentFrequency}
             </span>
-            <span className="bg-gray-100 px-2 py-1 rounded-md border border-gray-300/50">
-              {lease.duration}
-            </span>
-            {lease.furnished && (
-              <span className="bg-green-50 text-green-700 px-2 py-1 rounded-md border border-green-200">
-                Furnished
+            {rentalDetails.leaseDurationMonths && (
+              <span className="bg-gray-100 px-2 py-1 rounded-md border border-gray-300/50">
+                {rentalDetails.leaseDurationMonths} months lease
               </span>
             )}
-            {lease.depositRequired && (
+            {isFurnished && (
+              <span className="bg-green-50 text-green-700 px-2 py-1 rounded-md border border-green-200">
+                {furnishingStatus}
+              </span>
+            )}
+            {depositRequired && (
               <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded-md border border-amber-200">
                 Deposit Required
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* --- Property Condition & Amenities --- */}
+        {(propertyCondition || amenities.length > 0) && (
+          <div className="mb-4 text-xs text-gray-600 flex flex-wrap gap-2">
+            {propertyCondition && (
+              <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md border border-blue-200">
+                {propertyCondition}
+              </span>
+            )}
+            {amenities.slice(0, 2).map((amenity, idx) => (
+              <span
+                key={idx}
+                className="bg-purple-50 text-purple-700 px-2 py-1 rounded-md border border-purple-200"
+              >
+                {amenity}
+              </span>
+            ))}
+            {amenities.length > 2 && (
+              <span className="bg-gray-50 text-gray-600 px-2 py-1 rounded-md border border-gray-200">
+                +{amenities.length - 2} more
               </span>
             )}
           </div>
@@ -236,33 +317,45 @@ const PropertyCard = ({ property = {}, query = "" }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+            onClick={closeGallery}
           >
-            <div className="max-w-4xl w-full relative h-[60vh]">
+            <div
+              className="max-w-4xl w-full relative h-[60vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
               <img
                 src={activeGallery.images[activeGallery.index]}
                 alt="gallery"
-                className="w-full h-full object-cover rounded-lg shadow-lg"
+                className="w-full h-full object-contain rounded-lg shadow-lg"
               />
 
               <button
                 onClick={closeGallery}
-                className="absolute top-3 right-3 p-2 bg-white rounded-full shadow"
+                className="absolute top-3 right-3 p-2 bg-white rounded-full shadow hover:bg-gray-100"
               >
                 <FiX />
               </button>
 
-              <div
-                className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full cursor-pointer"
-                onClick={prevImage}
-              >
-                <FiChevronLeft />
-              </div>
+              {activeGallery.images.length > 1 && (
+                <>
+                  <button
+                    className="absolute left-3 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full cursor-pointer shadow hover:bg-gray-100"
+                    onClick={prevImage}
+                  >
+                    <FiChevronLeft />
+                  </button>
 
-              <div
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full cursor-pointer"
-                onClick={nextImage}
-              >
-                <FiChevronRight />
+                  <button
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full cursor-pointer shadow hover:bg-gray-100"
+                    onClick={nextImage}
+                  >
+                    <FiChevronRight />
+                  </button>
+                </>
+              )}
+
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                {activeGallery.index + 1} / {activeGallery.images.length}
               </div>
             </div>
           </motion.div>
