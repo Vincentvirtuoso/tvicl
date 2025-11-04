@@ -16,8 +16,9 @@ import {
 } from "react-icons/fi";
 import PropertyCard from "../components/ui/PropertyCard";
 import { usePropertyAPI } from "../hooks/useProperty";
-import { properties as dummyProperties } from "../data/properties";
 import { nigerianStates } from "../assets/propertyListingForm";
+import { Loader } from "../components/common/Loader";
+import FullScreenLoader from "../components/common/FullScreenLoader";
 
 const PropertyList = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,8 +40,15 @@ const PropertyList = () => {
   const [selectedAmenities, setSelectedAmenities] = useState([]);
 
   const navigate = useNavigate();
-  const { data, loading, error, searchProperties, fetchAnalytics } =
-    usePropertyAPI();
+  const {
+    data,
+    loading,
+    error,
+    searchProperties,
+    fetchAnalytics,
+    isLoading,
+    isAnyLoading,
+  } = usePropertyAPI();
 
   useEffect(() => {
     fetchAnalytics();
@@ -582,7 +590,7 @@ const PropertyList = () => {
         )}
 
         {/* Loading Skeleton */}
-        {loading && !properties.length && (
+        {isAnyLoading && !properties.length && (
           <div
             className={`grid gap-6 ${
               viewMode === "grid"

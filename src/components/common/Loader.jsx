@@ -106,7 +106,7 @@ export const Loader = ({
     ) : (
       <div
         className={clsx(
-          "flex items-center justify-center space-y-2",
+          "flex items-center gap-3 justify-center space-y-2",
           className
         )}
       >

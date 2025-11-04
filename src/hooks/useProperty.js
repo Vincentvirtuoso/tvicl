@@ -31,6 +31,8 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
     async (endpoint, key, params = {}, options = {}) => {
       const cacheKey = `${endpoint}-${JSON.stringify(params)}`;
 
+      setLoadingMap((prev) => ({ ...prev, [key]: true }));
+
       if (cache.current[cacheKey]) {
         setData((prev) => ({ ...prev, [key]: cache.current[cacheKey] }));
         return;
@@ -44,7 +46,6 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
       controllersRef.current.set(key, controller);
 
       try {
-        setLoadingMap((prev) => ({ ...prev, [key]: true }));
         setErrorMap((prev) => ({ ...prev, [key]: null }));
 
         const res = await api.get(`/properties/${endpoint}`, {

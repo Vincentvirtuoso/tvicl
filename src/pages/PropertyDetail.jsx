@@ -38,10 +38,11 @@ import {
   LuTrees,
 } from "react-icons/lu";
 import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { usePropertyAPI } from "../hooks/useProperty";
 import PropertySkeleton from "../section/propertyDetail/PropertySkeleton";
 import NoPropertyData from "../section/propertyDetail/NoPropertyData";
+import { formatCurrency } from "../utils/helper";
 
 const getErrorMessage = (errorCode) => {
   switch (errorCode) {
@@ -66,7 +67,6 @@ const PropertyDetail = () => {
   const {
     propertyById: data,
     fetchPropertyDetails,
-    isAnyLoading,
     isLoading,
     getError,
   } = usePropertyAPI();
@@ -105,15 +105,17 @@ const PropertyDetail = () => {
     );
   };
 
-  const formatCurrency = (amount) => {
-    return `₦${amount?.toLocaleString() || 0}`;
+  const navigate = useNavigate();
+
+  const handleNavigate = (path) => {
+    navigate(path);
   };
 
   useBodyScrollLock(showLightbox);
 
-  if (isLoading("propertyById") || isAnyLoading) return <PropertySkeleton />;
+  if (isLoading("propertyById")) return <PropertySkeleton />;
 
-  if (error && !data) {
+  if (error && !data && !isLoading("propertyById")) {
     return (
       <NoPropertyData
         message={getErrorMessage(error?.code)}
@@ -125,8 +127,21 @@ const PropertyDetail = () => {
   return (
     <section className="min-h-screen bg-gray-50 py-6 px-4 md:px-8 lg:px-12">
       {/* ===== BREADCRUMB ===== */}
-      <div className="max-w-7xl mx-auto mb-4 text-sm text-gray-600">
-        <span>Home</span> / <span>Properties</span> /{" "}
+      <div className="max-w-7xl mx-auto mb-4 text-sm text-gray-500">
+        <span
+          className="hover:text-gray-700 hover:underline cursor-pointer"
+          onClick={() => handleNavigate("/")}
+        >
+          Home
+        </span>{" "}
+        /{" "}
+        <span
+          className="hover:text-gray-700 hover:underline cursor-pointer"
+          onClick={() => handleNavigate("/property/list")}
+        >
+          Properties
+        </span>{" "}
+        /{" "}
         <span className="text-gray-900 font-medium">
           {property.propertyType}
         </span>
@@ -342,21 +357,27 @@ const PropertyDetail = () => {
               />
               <DetailItem label="Status" value={property.possessionStatus} />
               <DetailItem label="Year Built" value={property.yearBuilt} />
-              <DetailItem
-                label="Floor Size"
-                value={`${property.floorSize?.value} ${property.floorSize?.unit}`}
-              />
-              <DetailItem
-                label="Carpet Area"
-                value={`${property.carpetArea?.value} ${property.carpetArea?.unit}`}
-              />
+              {property.floorSize?.value && (
+                <DetailItem
+                  label="Floor Size"
+                  value={`${property.floorSize?.value} ${property.floorSize?.unit}`}
+                />
+              )}
+              {property.carpetArea.value && (
+                <DetailItem
+                  label="Carpet Area"
+                  value={`${property.carpetArea?.value} ${property.carpetArea?.unit}`}
+                />
+              )}
               <DetailItem label="Facing" value={property.facing} />
               <DetailItem label="Kitchens" value={property.kitchens} />
               <DetailItem label="Balconies" value={property.balconies} />
-              <DetailItem
-                label="Floors"
-                value={`${property.floor} of ${property.totalFloors}`}
-              />
+              {property.floor && (
+                <DetailItem
+                  label="Floors"
+                  value={`${property.floor} of ${property.totalFloors}`}
+                />
+              )}
               <DetailItem
                 label="Covered Parking"
                 value={property.parking?.covered}
@@ -421,14 +442,16 @@ const PropertyDetail = () => {
                 <MdLocalGasStation className="text-red-600 text-2xl" />
                 <div>
                   <p className="text-sm text-gray-500">Gas</p>
-                  <p className="font-semibold">{property.utilities?.gas}</p>
+                  <p className="font-semibold">
+                    {property.utilities?.gas || "None"}
+                  </p>
                 </div>
               </div>
             </div>
           </motion.div>
 
           {/* Nearby Places */}
-          {property.nearbyPlaces && (
+          {property.nearbyPlaces?.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -613,7 +636,9 @@ const PropertyDetail = () => {
               </div>
               <div className="flex items-center justify-between py-2 border-b border-gray-100">
                 <span className="text-gray-600">Area (LGA)</span>
-                <span className="font-medium">{property.address?.lga}</span>
+                <span className="font-medium">
+                  {property.address?.lga || "-"}
+                </span>
               </div>
               <div className="flex items-center justify-between py-2">
                 <span className="text-gray-600">Postal Code</span>
@@ -686,7 +711,7 @@ const PropertyDetail = () => {
 const DetailItem = ({ label, value }) => (
   <div className="p-3 bg-gray-50 rounded-lg">
     <p className="text-xs text-gray-500 mb-1">{label}</p>
-    <p className="font-semibold text-gray-900">{value}</p>
+    <p className="font-semibold text-gray-900">{value || "--"}</p>
   </div>
 );
 

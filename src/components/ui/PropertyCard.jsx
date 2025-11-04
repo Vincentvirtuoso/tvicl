@@ -297,7 +297,7 @@ const PropertyCard = ({ property = {}, query = "" }) => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <CartQuantityUpdater property={property} />
+          {/* <CartQuantityUpdater property={property} /> */}
 
           <motion.button
             whileTap={{ scale: 0.95 }}

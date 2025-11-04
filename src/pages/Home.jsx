@@ -1,23 +1,19 @@
 import React, { useEffect } from "react";
+import { motion } from "framer-motion";
 import Hero from "../section/home/Hero";
+import ServicesOverview from "../section/home/ServicesOverview";
 import ExclusiveProperties from "../section/home/ExclusiveProperties";
-import { useAuth } from "../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import WhyChooseUs from "../section/home/WhyChooseUs";
+import CTASection from "../section/home/CTASection";
 
 const Home = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user?.activeRole === "agent") navigate("/agent/dashboard");
-    else if (user?.activeRole === "estate") navigate("/estate/dashboard");
-    else if (user?.activeRole === "admin") navigate("/admin/dashboard");
-  }, [user, navigate]);
-
   return (
-    <div>
+    <div className="home-page">
       <Hero />
+      <ServicesOverview />
       <ExclusiveProperties />
+      <WhyChooseUs />
+      <CTASection />
     </div>
   );
 };
