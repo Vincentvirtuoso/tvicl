@@ -158,11 +158,26 @@ export const additionalRoomsList = [
 ];
 
 export const transactionTypes = [
-  "Off Plan",
-  "Outright",
-  "Installments",
-  "Mortgage",
-  "Rent to Own",
+  {
+    value: "Off Plan",
+    label: "Off Plan – Buy during construction with staged payments.",
+  },
+  {
+    value: "Outright",
+    label: "Outright – Full payment for immediate ownership.",
+  },
+  {
+    value: "Installments",
+    label: "Installments – Pay gradually over an agreed period.",
+  },
+  {
+    value: "Mortgage",
+    label: "Mortgage – Bank-financed purchase, repaid over time.",
+  },
+  {
+    value: "Rent to Own",
+    label: "Rent to Own – Rent contributes toward eventual ownership.",
+  },
 ];
 
 export const listingTypes = ["For Sale", "For Rent", "Short Let"];
@@ -234,7 +249,7 @@ export const fields = {
     preferredTenants: "Anyone",
   },
 
-  transactionType: "Rent to Own",
+  transactionType: "Outright",
 
   // Condition
   furnishingStatus: "",
@@ -286,8 +301,12 @@ export const fields = {
 };
 
 export const generateMediaCategories = (data) => {
-  const cats = [
-    {
+  const type = data.propertyType || "";
+  const cats = [];
+
+  // --- UNIVERSAL CATEGORIES ---
+  if (type !== "Plot") {
+    cats.push({
       id: "cover",
       label: "Cover Photo",
       description: "Main property image (required)",
@@ -295,72 +314,88 @@ export const generateMediaCategories = (data) => {
       minImages: 1,
       maxImages: 1,
       icon: "🏠",
-    },
-    {
-      id: "exterior",
-      label: "Exterior/Building",
-      description: "Outside views, facade, compound",
-      required: true,
-      minImages: 2,
-      icon: "🏢",
-      maxImages: 7,
-    },
-    {
-      id: "living",
-      label: "Living Room",
-      description: "Main living area",
-      required: true,
-      minImages: 2,
-      icon: "🛋️",
-      maxImages: 4,
-    },
-  ];
-
-  // Add bedrooms
-  const bedroomCount = parseInt(data.bedrooms) || 0;
-  for (let i = 1; i <= bedroomCount; i++) {
-    cats.push({
-      id: `bedroom_${i}`,
-      label: `Bedroom ${i}${i === 1 ? " (Master)" : ""}`,
-      description: `Photos of bedroom ${i}`,
-      required: true,
-      minImages: 1,
-      icon: "🛏️",
-      maxImages: 4,
     });
   }
 
-  // Add bathrooms
-  const bathroomCount = parseInt(data.bathrooms) || 0;
-  for (let i = 1; i <= bathroomCount; i++) {
-    cats.push({
-      id: `bathroom_${i}`,
-      label: `Bathroom ${i}`,
-      description: `Toilet, shower, fixtures`,
-      required: true,
-      minImages: 1,
-      maxImages: 4,
-      icon: "🚿",
-    });
-  }
+  // --- PROPERTY TYPE SPECIFIC CONFIGURATIONS ---
+  const isResidential = [
+    "Self Contained",
+    "Mini Flat",
+    "Flat/Apartment",
+    "Bungalow",
+    "Detached Duplex",
+    "Semi-Detached Duplex",
+    "Terraced Duplex",
+    "Mansion",
+    "Serviced Apartment",
+  ].includes(type);
 
-  // Add kitchens
-  const kitchenCount = parseInt(data.kitchens) || 0;
-  for (let i = 1; i <= kitchenCount; i++) {
-    cats.push({
-      id: `kitchen_${i}`,
-      label: kitchenCount > 1 ? `Kitchen ${i}` : "Kitchen",
-      description: "Cabinets, appliances, countertops",
-      required: true,
-      minImages: 1,
-      maxImages: 4,
-      icon: "🍳",
-    });
-  }
+  const isCommercial = ["Commercial", "Office", "Warehouse"].includes(type);
+  const isLand = type === "Plot";
 
-  // Add balconies if any
-  const balconyCount = parseInt(data.balconies) || 0;
-  if (balconyCount > 0) {
+  // --- RESIDENTIAL PROPERTIES ---
+  if (isResidential) {
+    cats.push(
+      {
+        id: "exterior",
+        label: "Exterior/Building",
+        description: "Outside views, facade, compound",
+        required: true,
+        minImages: 2,
+        maxImages: 7,
+        icon: "🏢",
+      },
+      {
+        id: "living",
+        label: "Living Room",
+        description: "Main living area",
+        required: true,
+        minImages: 2,
+        maxImages: 4,
+        icon: "🛋️",
+      }
+    );
+
+    const bedroomCount = parseInt(data.bedrooms) || 0;
+    for (let i = 1; i <= bedroomCount; i++) {
+      cats.push({
+        id: `bedroom_${i}`,
+        label: `Bedroom ${i}${i === 1 ? " (Master)" : ""}`,
+        description: `Photos of bedroom ${i}`,
+        required: true,
+        minImages: 1,
+        maxImages: 4,
+        icon: "🛏️",
+      });
+    }
+
+    const bathroomCount = parseInt(data.bathrooms) || 0;
+    for (let i = 1; i <= bathroomCount; i++) {
+      cats.push({
+        id: `bathroom_${i}`,
+        label: `Bathroom ${i}`,
+        description: `Toilet, shower, fixtures`,
+        required: true,
+        minImages: 1,
+        maxImages: 4,
+        icon: "🚿",
+      });
+    }
+
+    const kitchenCount = parseInt(data.kitchens) || 0;
+    for (let i = 1; i <= kitchenCount; i++) {
+      cats.push({
+        id: `kitchen_${i}`,
+        label: kitchenCount > 1 ? `Kitchen ${i}` : "Kitchen",
+        description: "Cabinets, appliances, countertops",
+        required: true,
+        minImages: 1,
+        maxImages: 4,
+        icon: "🍳",
+      });
+    }
+
+    const balconyCount = parseInt(data.balconies) || 0;
     for (let i = 1; i <= balconyCount; i++) {
       cats.push({
         id: `balcony_${i}`,
@@ -372,50 +407,124 @@ export const generateMediaCategories = (data) => {
         icon: "🌿",
       });
     }
+
+    if (data.additionalRooms && data.additionalRooms.length > 0) {
+      data.additionalRooms.forEach((room, idx) => {
+        cats.push({
+          id: `additional_${idx}`,
+          label: room || `Additional Room ${idx + 1}`,
+          description: "Other spaces",
+          required: false,
+          minImages: 1,
+          maxImages: 4,
+          icon: "📦",
+        });
+      });
+    }
+
+    // Optional residential areas
+    cats.push(
+      {
+        id: "dining",
+        label: "Dining Area",
+        description: "Dining space (optional)",
+        required: false,
+        minImages: 1,
+        icon: "🍽️",
+      },
+      {
+        id: "parking",
+        label: "Parking",
+        description: "Garage, parking space",
+        required: false,
+        minImages: 1,
+        icon: "🚗",
+      },
+      {
+        id: "other",
+        label: "Other",
+        description: "Additional photos",
+        required: false,
+        minImages: 0,
+        icon: "📸",
+      }
+    );
   }
 
-  // Add additional rooms
-  if (data.additionalRooms && data.additionalRooms.length > 0) {
-    data.additionalRooms.forEach((room, idx) => {
-      cats.push({
-        id: `additional_${idx}`,
-        label: room || `Additional Room ${idx + 1}`,
-        description: "Other spaces",
+  // --- COMMERCIAL PROPERTIES ---
+  else if (isCommercial) {
+    cats.push(
+      {
+        id: "exterior",
+        label: "Building Exterior",
+        description: "Front view, parking area, signage",
+        required: true,
+        minImages: 2,
+        maxImages: 6,
+        icon: "🏢",
+      },
+      {
+        id: "interior",
+        label: "Interior Spaces",
+        description: "Office/workshop interiors",
+        required: true,
+        minImages: 2,
+        maxImages: 8,
+        icon: "🏬",
+      },
+      {
+        id: "utilities",
+        label: "Utilities & Facilities",
+        description: "Power, lighting, storage, etc.",
         required: false,
         minImages: 1,
         maxImages: 4,
-        icon: "📦",
-      });
-    });
+        icon: "⚙️",
+      },
+      {
+        id: "parking",
+        label: "Parking Area",
+        description: "Parking lot or loading bay",
+        required: false,
+        minImages: 1,
+        maxImages: 4,
+        icon: "🚗",
+      }
+    );
   }
 
-  // Optional categories
-  cats.push(
-    {
-      id: "dining",
-      label: "Dining Area",
-      description: "Dining space (optional)",
-      required: false,
-      minImages: 1,
-      icon: "🍽️",
-    },
-    {
-      id: "parking",
-      label: "Parking",
-      description: "Garage, parking space",
-      required: false,
-      minImages: 1,
-      icon: "🚗",
-    },
-    {
-      id: "other",
-      label: "Other",
-      description: "Additional photos",
-      required: false,
-      minImages: 0,
-      icon: "📸",
-    }
-  );
+  // --- LAND / PLOT ---
+  else if (isLand) {
+    cats.push(
+      {
+        id: "land",
+        label: "Land Area",
+        description: "Full land view, terrain, access roads",
+        required: true,
+        minImages: 2,
+        maxImages: 6,
+        icon: "🌾",
+      },
+      {
+        id: "beacon",
+        label: "Beacons / Boundaries",
+        description: "Show land demarcations and survey pegs",
+        required: false,
+        minImages: 1,
+        maxImages: 4,
+        icon: "📍",
+      },
+      {
+        id: "neighbourhood",
+        label: "Neighbourhood View",
+        description: "Nearby facilities or landmarks",
+        required: false,
+        minImages: 1,
+        maxImages: 4,
+        icon: "🏞️",
+      }
+    );
+  }
 
   return cats;
 };

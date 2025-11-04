@@ -13,7 +13,7 @@ import {
 } from "react-icons/lu";
 import { Loader } from "../../../components/common/Loader";
 
-const ReviewStep = ({ formData, isLoading }) => {
+const ReviewStep = ({ formData, isLoading, setStep }) => {
   const {
     title,
     description,
@@ -149,7 +149,12 @@ const ReviewStep = ({ formData, isLoading }) => {
 
       <div className="grid lg:grid-cols-2 gap-4 mb-6 ">
         {/* Basic Info */}
-        <SummaryCard icon={<FiHome />} title="Basic Information">
+        <SummaryCard
+          setStep={setStep}
+          step={1}
+          icon={<FiHome />}
+          title="Basic Information"
+        >
           <InfoRow label="Title" value={title} />
           <InfoRow label="Property Type" value={propertyType} />
           {flatType && <InfoRow label="Flat Type" value={flatType} />}
@@ -166,7 +171,12 @@ const ReviewStep = ({ formData, isLoading }) => {
         </SummaryCard>
 
         {/* Address */}
-        <SummaryCard icon={<LuMapPin />} title="Location">
+        <SummaryCard
+          setStep={setStep}
+          step={2}
+          icon={<LuMapPin />}
+          title="Location"
+        >
           <InfoRow label="Street" value={address?.street} />
           <InfoRow label="Area" value={address?.area} />
           <InfoRow label="City" value={address?.city} />
@@ -186,7 +196,12 @@ const ReviewStep = ({ formData, isLoading }) => {
         </SummaryCard>
 
         {/* Room Details */}
-        <SummaryCard icon={<LuHouse />} title="Room & Floor Details">
+        <SummaryCard
+          setStep={setStep}
+          step={1}
+          icon={<LuHouse />}
+          title="Room & Floor Details"
+        >
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             <InfoRow label="Bedrooms" value={bedrooms} />
             <InfoRow label="Bathrooms" value={bathrooms} />
@@ -222,7 +237,12 @@ const ReviewStep = ({ formData, isLoading }) => {
         </SummaryCard>
 
         {/* Pricing */}
-        <SummaryCard icon={<LuCreditCard />} title="Pricing & Payment">
+        <SummaryCard
+          setStep={setStep}
+          step={3}
+          icon={<LuCreditCard />}
+          title="Pricing & Payment"
+        >
           <InfoRow
             label="Price"
             value={
@@ -333,7 +353,12 @@ const ReviewStep = ({ formData, isLoading }) => {
         </SummaryCard>
 
         {/* Condition */}
-        <SummaryCard icon={<LuInfo />} title="Property Condition">
+        <SummaryCard
+          setStep={setStep}
+          step={4}
+          icon={<LuInfo />}
+          title="Property Condition"
+        >
           <InfoRow label="Furnishing Status" value={furnishingStatus} />
           <InfoRow label="Property Condition" value={propertyCondition} />
           <InfoRow label="Possession Status" value={possessionStatus} />
@@ -351,7 +376,12 @@ const ReviewStep = ({ formData, isLoading }) => {
         </SummaryCard>
 
         {/* Facilities */}
-        <SummaryCard icon={<LuFileText />} title="Facilities & Amenities">
+        <SummaryCard
+          setStep={setStep}
+          step={4}
+          icon={<LuFileText />}
+          title="Facilities & Amenities"
+        >
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             <InfoRow label="Covered Parking" value={parking?.covered || 0} />
             <InfoRow label="Open Parking" value={parking?.open || 0} />
@@ -381,7 +411,12 @@ const ReviewStep = ({ formData, isLoading }) => {
         </SummaryCard>
 
         {/* Contact */}
-        <SummaryCard icon={<LuUser />} title="Contact Information">
+        <SummaryCard
+          setStep={setStep}
+          step={6}
+          icon={<LuUser />}
+          title="Contact Information"
+        >
           {contactPerson?.map((contact, idx) => (
             <div key={idx} className="bg-gray-50 rounded-lg p-3 mb-2 last:mb-0">
               <div className="flex items-center gap-2 mb-2">
@@ -398,7 +433,12 @@ const ReviewStep = ({ formData, isLoading }) => {
 
         {/* Legal Documents */}
         {legalDocuments && (
-          <SummaryCard icon={<LuFile />} title="Legal Documents">
+          <SummaryCard
+            setStep={setStep}
+            step={5}
+            icon={<LuFile />}
+            title="Legal Documents"
+          >
             <div className="space-y-2">
               <DocStatus label="C of O" doc={legalDocuments.cOfO} />
               <DocStatus label="Survey Plan" doc={legalDocuments.surveyPlan} />
@@ -464,15 +504,29 @@ const ReviewStep = ({ formData, isLoading }) => {
 };
 
 // Summary Card Component
-const SummaryCard = ({ icon, title, children }) => (
-  <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow overflow-hidden">
-    <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
-      <span className="text-yellow-500 text-xl">{icon}</span>
-      <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+const SummaryCard = ({ icon, title, children, step, setStep }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow overflow-hidden">
+      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
+        <span className="text-yellow-500 text-xl">{icon}</span>
+        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+      </div>
+      <div className="space-y-2">{children}</div>
+      <div className="border-t border-gray-100 mt-4 pt-3 flex justify-end">
+        <button
+          type="button"
+          className="px-4 py-1.5 bg-primary text-sm rounded-full text-white"
+          onClick={() => {
+            console.log("test");
+            setStep(step);
+          }}
+        >
+          Go to step
+        </button>
+      </div>
     </div>
-    <div className="space-y-2">{children}</div>
-  </div>
-);
+  );
+};
 
 // Info Row Component
 const InfoRow = ({ label, value, truncate = false }) => (
@@ -496,21 +550,7 @@ const DocStatus = ({ label, doc }) => (
     <span className="text-sm text-gray-700">{label}</span>
     <div className="flex items-center gap-2">
       {doc?.present ? (
-        <>
-          <span className="text-xs font-medium text-green-600">
-            ✓ Available
-          </span>
-          {doc?.url && (
-            <a
-              href={doc.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:underline"
-            >
-              View
-            </a>
-          )}
-        </>
+        <span className="text-xs font-medium text-green-600">✓ Available</span>
       ) : (
         <span className="text-xs text-gray-400">Not provided</span>
       )}

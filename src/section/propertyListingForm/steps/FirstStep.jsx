@@ -1,3 +1,4 @@
+import { LuTriangleAlert } from "react-icons/lu";
 import { flatTypes, propertyTypes } from "../../../assets/propertyListingForm";
 
 const FirstStep = ({ formData, errors, handleChange }) => {
@@ -28,7 +29,7 @@ const FirstStep = ({ formData, errors, handleChange }) => {
         />
         {errors.title && (
           <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-            <span>⚠️</span> {errors.title}
+            <LuTriangleAlert className="inline-flex mr-1" /> {errors.title}
           </p>
         )}
         <p className="text-sm text-gray-500 mt-1">
@@ -56,7 +57,8 @@ const FirstStep = ({ formData, errors, handleChange }) => {
         />
         {errors.description && (
           <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-            <span>⚠️</span> {errors.description}
+            <LuTriangleAlert className="inline-flex mr-1" />{" "}
+            {errors.description}
           </p>
         )}
         <p className="text-sm text-gray-500 mt-1">
@@ -90,7 +92,8 @@ const FirstStep = ({ formData, errors, handleChange }) => {
           </select>
           {errors.propertyType && (
             <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-              <span>⚠️</span> {errors.propertyType}
+              <LuTriangleAlert className="inline-flex mr-1" />{" "}
+              {errors.propertyType}
             </p>
           )}
         </div>
@@ -116,7 +119,8 @@ const FirstStep = ({ formData, errors, handleChange }) => {
           </select>
           {errors.listingType && (
             <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-              <span>⚠️</span> {errors.listingType}
+              <LuTriangleAlert className="inline-flex mr-1" />{" "}
+              {errors.listingType}
             </p>
           )}
         </div>
@@ -149,7 +153,7 @@ const FirstStep = ({ formData, errors, handleChange }) => {
           </select>
           {errors.flatType && (
             <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-              <span>⚠️</span> {errors.flatType}
+              <LuTriangleAlert className="inline-flex mr-1" /> {errors.flatType}
             </p>
           )}
         </div>

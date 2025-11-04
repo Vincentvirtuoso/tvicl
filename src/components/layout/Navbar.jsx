@@ -62,11 +62,7 @@ const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
 
-  const requiresSolidBg = [
-    "/unauthorized",
-    "/become-agent-or-agency",
-    "/interior-decoration",
-  ];
+  const requiresSolidBg = ["/unauthorized", "/become-agent-or-agency"];
 
   const isScrolled = scrollY > 55;
   const isSolid = requiresSolidBg.includes(pathname);
@@ -147,11 +143,13 @@ const Navbar = () => {
   const allowedRoles = ["agent", "estate"];
   const extraLinks = [
     { label: "Interior Decoration", to: "/interior-decoration" },
+    { label: "Construction", to: "/construction" },
+    { label: "About Us", to: "/about-us" },
   ];
   const conditionalLinks = user?.roles?.some((role) =>
     allowedRoles.includes(role)
   )
-    ? [{ label: "List/Sell Properties", to: "/property/add" }]
+    ? [{ label: "Sell Properties", to: "/property/add" }]
     : [];
   const allUserLinks = [
     { label: "Home", to: "/" },
@@ -167,13 +165,12 @@ const Navbar = () => {
     agent: [
       { label: "Dashboard", to: "/agent/dashboard" },
       { label: "My Listings", to: "/agent/listings" },
-      { label: "Sales", to: "/agent/sales" },
       { label: "Join Estate", to: "/agent/join-estate" },
     ],
     estate: [
       { label: "Dashboard", to: "/estate/dashboard" },
       { label: "My Properties", to: "/estate/properties" },
-      // { label: "Maintenance", to: "/estate/maintenance" },
+      { label: "Find Agent", to: "/estate/find-estate" },
     ],
     buyer: [...allUserLinks, { label: "My Investments", to: "/investments" }],
   };
@@ -244,7 +241,7 @@ const Navbar = () => {
         className="fixed top-0 left-0 w-full z-50"
       >
         <div
-          className={`max-w-7xl mx-auto flex items-center justify-between px-4 lg:px-8 py-3 transition-colors duration-200 ${
+          className={`mx-auto flex items-center justify-between px-4 lg:px-8 py-3 transition-colors duration-200 ${
             isSolid
               ? "text-secondary"
               : isScrolled

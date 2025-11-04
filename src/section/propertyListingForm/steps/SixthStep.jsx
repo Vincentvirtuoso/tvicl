@@ -6,6 +6,7 @@ import {
   LuTrash2,
 } from "react-icons/lu";
 import { isValidEmail, isValidPhone } from "../../../utils/validators";
+import { useAuth } from "../../../hooks/useAuth";
 
 const SixthStep = ({
   formData,
@@ -13,19 +14,66 @@ const SixthStep = ({
   errors,
   addContact,
   removeContact,
+  setFormData, // ✅ make sure parent passes this in
 }) => {
   const contacts = formData.contactPerson || [];
+  const { user } = useAuth();
+
+  // === Use My Data Handler ===
+  const handleUseMyData = () => {
+    if (!user) {
+      alert("You need to be logged in to use your data.");
+      return;
+    }
+
+    const newContact = {
+      name: user.fullName || "",
+      phone: user.phone || "",
+      email: user.email || "",
+      role:
+        user.activeRole === "agent" ||
+        user.activeRole === "estate" ||
+        user.roles.includes("agent")
+          ? "Agent"
+          : "Owner",
+    };
+
+    // If no contact exists, create one
+    if (contacts.length === 0) {
+      setFormData((prev) => ({
+        ...prev,
+        contactPerson: [newContact],
+      }));
+    } else {
+      // Update first contact with user data
+      const updatedContacts = [...contacts];
+      updatedContacts[0] = { ...updatedContacts[0], ...newContact };
+      setFormData((prev) => ({
+        ...prev,
+        contactPerson: updatedContacts,
+      }));
+    }
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
-          Contact Details
-        </h2>
-        <p className="text-gray-600">
-          Add one or more contact persons for this property listing.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            Contact Details
+          </h2>
+          <p className="text-gray-600">
+            Add one or more contact persons for this property listing.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleUseMyData}
+          className="text-sm bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition-all whitespace-nowrap"
+        >
+          Use My Data
+        </button>
       </div>
 
       {/* Contact Persons */}
@@ -62,7 +110,7 @@ const SixthStep = ({
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Contact Name */}
+                {/* Name */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Name *
@@ -87,7 +135,7 @@ const SixthStep = ({
                   )}
                 </div>
 
-                {/* Contact Phone */}
+                {/* Phone */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Phone *
@@ -113,15 +161,9 @@ const SixthStep = ({
                         Invalid Nigerian phone number
                       </p>
                     )}
-                  {errors[`contact_${index}_phone`] && (
-                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                      <LuTriangleAlert className="inline-flex mr-1" />
-                      {errors[`contact_${index}_phone`]}
-                    </p>
-                  )}
                 </div>
 
-                {/* Contact Email */}
+                {/* Email */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Email *
@@ -147,15 +189,9 @@ const SixthStep = ({
                         Invalid email format
                       </p>
                     )}
-                  {errors[`contact_${index}_email`] && (
-                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                      <LuTriangleAlert className="inline-flex mr-1" />
-                      {errors[`contact_${index}_email`]}
-                    </p>
-                  )}
                 </div>
 
-                {/* Contact Role */}
+                {/* Role */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Role *
@@ -176,12 +212,6 @@ const SixthStep = ({
                     <option value="Builder">Builder</option>
                     <option value="Realtor">Realtor</option>
                   </select>
-                  {errors[`contact_${index}_role`] && (
-                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                      <LuTriangleAlert className="inline-flex mr-1" />
-                      {errors[`contact_${index}_role`]}
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
@@ -202,7 +232,7 @@ const SixthStep = ({
         <LuUserPlus /> Add Another Contact
       </button>
 
-      {/* Pro Tip Card */}
+      {/* Pro Tip */}
       <div className="bg-blue-400/10 border-2 border-blue-200 rounded-lg p-3">
         <h4 className="font-semibold text-blue-900 mb-2 text-sm">
           <LuLightbulb className="inline-flex mr-1" /> Pro Tip

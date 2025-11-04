@@ -2,18 +2,28 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import api from "../api/axiosInstance";
 
 export const usePropertyAPI = (userId = null, debounceMs = 400) => {
-  // 1. Removed redundant 'propertyById' state
   const [data, setData] = useState({});
-
   const [loadingMap, setLoadingMap] = useState({});
   const [errorMap, setErrorMap] = useState({});
-  const controllerRef = useRef(null);
+
+  // Changed: Use a Map to track individual request controllers
+  const controllersRef = useRef(new Map());
   const debounceTimer = useRef(null);
   const cache = useRef({});
 
-  // 🔄 Cancel ongoing requests
-  const cancelOngoing = () => {
-    if (controllerRef.current) controllerRef.current.abort();
+  // 🔄 Cancel a specific request by key
+  const cancelRequest = (key) => {
+    const controller = controllersRef.current.get(key);
+    if (controller) {
+      controller.abort();
+      controllersRef.current.delete(key);
+    }
+  };
+
+  // 🔄 Cancel all ongoing requests
+  const cancelAllRequests = () => {
+    controllersRef.current.forEach((controller) => controller.abort());
+    controllersRef.current.clear();
   };
 
   // ⚙️ Centralized Fetcher
@@ -26,9 +36,12 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
         return;
       }
 
-      cancelOngoing();
+      // Cancel only the specific request for this key (not all requests)
+      cancelRequest(key);
+
+      // Create a new controller for this specific request
       const controller = new AbortController();
-      controllerRef.current = controller;
+      controllersRef.current.set(key, controller);
 
       try {
         setLoadingMap((prev) => ({ ...prev, [key]: true }));
@@ -45,7 +58,6 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
         cache.current[cacheKey] = result;
       } catch (err) {
         if (err?.name !== "AbortError") {
-          // 3. Improved error handling for server response
           const errorMessage =
             err.response?.data || err.message || "Failed to fetch data";
 
@@ -56,6 +68,8 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
         }
       } finally {
         setLoadingMap((prev) => ({ ...prev, [key]: false }));
+        // Clean up the controller after request completes
+        controllersRef.current.delete(key);
       }
     },
     []
@@ -88,7 +102,6 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
   const fetchAnalytics = useCallback(() => {
     Promise.all([
       fetchData("analytics/trending", "trending"),
-      // Ensure userId is used for the endpoint
       fetchData(`analytics/recommend/${userId}`, "recommended"),
       fetchData("analytics/top-searches", "topSearches"),
       fetchData("analytics/top-viewed", "topViewed"),
@@ -110,28 +123,25 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
     return fetchData(`${id}`, "propertyById");
   };
 
-  // 🧹 Cleanup
-  useEffect(() => cancelOngoing, []);
+  // 🧹 Cleanup - cancel all requests on unmount
+  useEffect(() => cancelAllRequests, []);
 
   // 🧭 Utilities
   const isLoading = (key) => !!loadingMap[key];
   const getError = (key) => errorMap[key];
-
-  // 4. Added global status helpers
   const isAnyLoading = Object.values(loadingMap).some(Boolean);
   const hasAnyError = Object.values(errorMap).some(Boolean);
 
   return {
     data,
-    // Access propertyById directly from the central 'data' state
     propertyById: data.propertyById,
 
     loadingMap,
     errorMap,
     isLoading,
     getError,
-    isAnyLoading, // Helper
-    hasAnyError, // Helper
+    isAnyLoading,
+    hasAnyError,
 
     createProperty,
     updateProperty,
@@ -142,7 +152,7 @@ export const usePropertyAPI = (userId = null, debounceMs = 400) => {
     fetchAnalytics,
     fetchRelated,
     searchProperties,
-    fetchPropertyDetails, // Now included and functional
+    fetchPropertyDetails,
     refetch: fetchAnalytics,
   };
 };

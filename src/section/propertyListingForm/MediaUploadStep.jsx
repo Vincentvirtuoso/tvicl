@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useMemo, memo, useRef } from "react";
 import { FaVideo, FaCheckCircle } from "react-icons/fa";
-import { LuCamera, LuInfo, LuCircleAlert } from "react-icons/lu";
+import { LuCamera, LuInfo, LuCircleAlert, LuFileText } from "react-icons/lu";
 import { generateMediaCategories } from "../../assets/propertyListingForm";
 import FileUpload from "./FileUpload";
 import { useToast } from "../../context/ToastManager";
@@ -18,30 +18,41 @@ const MediaUploadStep = ({
   const [mediaCategories, setMediaCategories] = useState({});
   const [videoLink, setVideoLink] = useState(formData.videoUrl || "");
   const [activeCategory, setActiveCategory] = useState(null);
-  const [isValidatingVideo, setIsValidatingVideo] = useState(false);
+  // const [isValidatingVideo, setIsValidatingVideo] = useState(false);
 
   const { addToast } = useToast();
 
   const uploadSectionRef = useRef(null);
 
   // 📊 Memoized categories to prevent unnecessary recalculations
-  const categories = useMemo(
-    () => generateMediaCategories(formData),
-    [
-      formData.bedrooms,
-      formData.bathrooms,
-      formData.kitchens,
-      formData.balconies,
-      formData.additionalRooms,
-    ]
-  );
+  const categories = useMemo(() => {
+    const initial = generateMediaCategories(formData);
+    return [
+      ...initial,
+      {
+        id: "legalDocs",
+        label: "Legal Documents",
+        description:
+          "Upload property ownership and approval documents (PDF or Image).",
+        icon: <LuFileText className="text-primary inline-flex" />,
+        required: false,
+      },
+    ];
+  }, [
+    formData.bedrooms,
+    formData.bathrooms,
+    formData.kitchens,
+    formData.balconies,
+    formData.additionalRooms,
+  ]);
 
   // 🔄 Initialize and organize media by category
   useEffect(() => {
     const existingMedia = formData.media || [];
+    const legalDocs = formData.legalDocuments || {};
     const organized = {};
 
-    // Initialize all categories
+    // Initialize all media categories
     categories.forEach((cat) => {
       organized[cat.id] = [];
     });
@@ -53,13 +64,31 @@ const MediaUploadStep = ({
       }
     });
 
+    // ✅ Add legal document categories (e.g., C of O, Survey Plan, etc.)
+    organized["legalDocs"] = [];
+
+    Object.entries(legalDocs).forEach(([key, doc]) => {
+      if (doc?.url) {
+        organized["legalDocs"].push({
+          id: key,
+          url: doc.url,
+          type: "document",
+          label: key
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase()),
+          present: doc.present || false,
+        });
+      }
+    });
+
+    // ✅ Update state
     setMediaCategories(organized);
 
-    // Set first category as active if none selected
+    // Set first category active if none selected
     if (categories.length > 0 && !activeCategory) {
       setActiveCategory(categories[0].id);
     }
-  }, [categories, formData.media?.length]);
+  }, [categories, formData.media?.length, formData.legalDocuments]);
 
   // 📂 Handle File Uploads with comprehensive validation
   const handleFilesChange = (categoryId, e, subCategory) => {
@@ -69,65 +98,70 @@ const MediaUploadStep = ({
 
     if (!category || files.length === 0) return;
 
-    const MAX_FILE_SIZE_MB = 5;
+    const MAX_FILE_SIZE_MB = 10;
     const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
-    const ALLOWED_TYPES = [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/webp",
-      "image/heic",
-    ];
 
-    const validImages = [];
+    // ✅ Handle different accepted types
+    const ALLOWED_TYPES =
+      categoryId === "legalDocs"
+        ? ["application/pdf", "image/jpeg", "image/png", "image/webp"]
+        : ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic"];
+
+    const validFiles = [];
     const invalidFiles = [];
 
-    // ✅ Validate each file
     files.forEach((file) => {
       if (!ALLOWED_TYPES.includes(file.type.toLowerCase())) {
-        invalidFiles.push(
-          `${file.name} (invalid format - use JPG, PNG, or WebP)`
-        );
+        invalidFiles.push(`${file.name} (invalid format)`);
       } else if (file.size > MAX_FILE_SIZE) {
-        invalidFiles.push(
-          `${file.name} (${(file.size / 1024 / 1024).toFixed(
-            1
-          )}MB - exceeds ${MAX_FILE_SIZE_MB}MB limit)`
-        );
+        invalidFiles.push(`${file.name} exceeds ${MAX_FILE_SIZE_MB}MB`);
       } else {
-        validImages.push(file);
+        validFiles.push(file);
       }
     });
 
-    // ⚠️ Show validation errors
     if (invalidFiles.length > 0) {
       addToast(
-        `${invalidFiles.length} file(s) rejected:\n\n${invalidFiles.join(
-          "\n"
-        )}\n\n✓ Allowed: JPG, PNG, WebP\n✓ Max size: ${MAX_FILE_SIZE_MB}MB`,
+        `${invalidFiles.length} file(s) rejected:\n${invalidFiles.join("\n")}`,
         "error"
-      );
-    }
-
-    // 📏 Check category limits
-    if (
-      category.maxImages &&
-      current.length + validImages.length > category.maxImages
-    ) {
-      const remaining = category.maxImages - current.length;
-      addToast(
-        `Upload limit reached for "${category.label}".\n\nMax: ${category.maxImages} images\nCurrent: ${current.length}\nRemaining: ${remaining}`,
-        "warning"
       );
       return;
     }
 
-    if (validImages.length === 0) return;
+    // ⚖️ Legal Docs stored differently
+    if (categoryId === "legalDocs") {
+      const updatedDocs = { ...formData.legalDocuments };
 
-    // ✅ Create media items with proper schema
-    const newMediaItems = validImages.map((file) => ({
+      validFiles.forEach((file) => {
+        const key = subCategory;
+        if (!key) return;
+
+        console.log(file);
+
+        updatedDocs[key] = {
+          present: true,
+          url: URL.createObjectURL(file),
+          file,
+          type: file?.type?.split("/")?.[0] || "document",
+        };
+      });
+
+      setFormData((prev) => ({
+        ...prev,
+        legalDocuments: updatedDocs,
+      }));
+
+      console.log(updatedDocs);
+      console.log(validFiles);
+
+      addToast(`✓ ${validFiles.length} legal document(s) added`, "success");
+      return;
+    }
+
+    // 📸 Normal media uploads
+    const newMediaItems = validFiles.map((file) => ({
       url: URL.createObjectURL(file),
-      file, // Keep for upload
+      file,
       type: "image",
       category: categoryId,
       subCategory:
@@ -143,14 +177,13 @@ const MediaUploadStep = ({
 
     updateMediaState(categoryId, [...current, ...newMediaItems]);
 
-    // Clear error for this category
     if (errors[categoryId]) {
       setErrors((prev) => ({ ...prev, [categoryId]: null }));
     }
 
     addToast(
-      `✓ ${validImages.length} image${
-        validImages.length > 1 ? "s" : ""
+      `✓ ${validFiles.length} file${
+        validFiles.length > 1 ? "s" : ""
       } added to ${category.label}`,
       "success"
     );
@@ -438,43 +471,97 @@ const MediaUploadStep = ({
       </div>
 
       {/* Active Category Upload Section */}
-      {activeCategory && (
-        <div
-          className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
-          ref={uploadSectionRef}
-        >
-          {(() => {
-            const category = categories.find((c) => c.id === activeCategory);
-            const files = mediaCategories[activeCategory] || [];
-            const progress = getCategoryProgress(category);
+      {activeCategory &&
+        (activeCategory === "legalDocs" ? (
+          <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <LuFileText className="text-blue-600" size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Legal Documents
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Upload official documents like Certificate of Occupancy or
+                  Survey Plan.
+                </p>
+              </div>
+            </div>
 
-            return (
-              <FileUpload
-                key={category.id}
-                icon={category.icon}
-                label={category.label}
-                description={category.description}
-                required={category.required}
-                minFiles={category.minImages}
-                maxFiles={category.maxImages}
-                progress={progress}
-                accept="image/*"
-                name={category.id}
-                id={category.id}
-                preview={files}
-                errors={errors}
-                uploadPlaceholder="Upload Photos"
-                allowCaption
-                isCoverable={category.id === "cover"}
-                onSetPrimary={handleSetPrimary}
-                handleFilesChange={handleFilesChange}
-                handleCaptionChange={handleCaptionChange}
-                removeFile={removeFile}
-              />
-            );
-          })()}
-        </div>
-      )}
+            <div className="grid md:grid-cols-2 gap-4">
+              {[
+                { key: "cOfO", label: "Certificate of Occupancy (C of O)" },
+                { key: "surveyPlan", label: "Survey Plan" },
+                { key: "deedOfAssignment", label: "Deed of Assignment" },
+                { key: "governorsConsent", label: "Governor's Consent" },
+              ].map((doc) => (
+                <FileUpload
+                  key={doc.key}
+                  label={doc.label}
+                  name={`legalDocs-${doc.key}`}
+                  id={doc.key}
+                  icon={<LuFileText className="text-blue-500" />}
+                  description="Upload PDF or image format"
+                  accept=".pdf,image/*"
+                  isFile="legalDocs"
+                  preview={
+                    formData.legalDocuments?.[doc.key]?.url
+                      ? [formData.legalDocuments[doc.key]]
+                      : []
+                  }
+                  maxFiles={1}
+                  handleFilesChange={handleFilesChange}
+                  removeFile={() => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      legalDocuments: {
+                        ...prev.legalDocuments,
+                        [doc.key]: { present: false, url: "" },
+                      },
+                    }));
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div
+            className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm"
+            ref={uploadSectionRef}
+          >
+            {(() => {
+              const category = categories.find((c) => c.id === activeCategory);
+              const files = mediaCategories[activeCategory] || [];
+              const progress = getCategoryProgress(category);
+
+              return (
+                <FileUpload
+                  key={category.id}
+                  icon={category.icon}
+                  label={category.label}
+                  description={category.description}
+                  required={category.required}
+                  minFiles={category.minImages}
+                  maxFiles={category.maxImages}
+                  progress={progress}
+                  accept="image/*"
+                  name={category.id}
+                  id={category.id}
+                  preview={files}
+                  errors={errors}
+                  uploadPlaceholder="Upload Photos"
+                  allowCaption
+                  isCoverable={category.id === "cover"}
+                  onSetPrimary={handleSetPrimary}
+                  handleFilesChange={handleFilesChange}
+                  handleCaptionChange={handleCaptionChange}
+                  removeFile={removeFile}
+                />
+              );
+            })()}
+          </div>
+        ))}
 
       {/* Video Section */}
       <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-6 shadow-sm">

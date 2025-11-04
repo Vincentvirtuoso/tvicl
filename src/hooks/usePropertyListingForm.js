@@ -210,7 +210,11 @@ export const usePropertyListingForm = () => {
         if (!formData.transactionType) {
           newErrors.transactionType =
             "Transaction type is required for sale listings";
-        } else if (!transactionTypes.includes(formData.transactionType)) {
+        } else if (
+          !transactionTypes.some(
+            (type) => type.value === formData.transactionType
+          )
+        ) {
           newErrors.transactionType = "Invalid transaction type";
         }
       }

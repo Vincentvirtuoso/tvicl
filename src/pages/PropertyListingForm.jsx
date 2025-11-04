@@ -213,6 +213,7 @@ const PropertyListingForm = () => {
             <SixthStep
               formData={formData}
               handleChange={handleChange}
+              setFormData={setFormData}
               errors={errors}
               addContact={addContact}
               removeContact={removeContact}
@@ -222,10 +223,10 @@ const PropertyListingForm = () => {
             <ReviewStep
               formData={formData}
               onSubmit={handleSubmit}
+              setStep={setStep}
               isLoading={isLoading("createProperty")}
             />
           )}
-
           <NavigationButtons
             setStep={setStep}
             step={step}

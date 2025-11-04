@@ -5,6 +5,7 @@ import {
   LuTrash2,
 } from "react-icons/lu";
 import { transactionTypes } from "../../../assets/propertyListingForm";
+import PriceInput from "./PriceInput";
 
 const ThirdStep = ({
   formData,
@@ -34,40 +35,7 @@ const ThirdStep = ({
       </div>
 
       {/* Base Price */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Base Price *
-        </label>
-        <div className="flex flex-col items-start sm:items-center sm:flex-row gap-4">
-          <input
-            type="number"
-            name="price.amount"
-            value={price.amount || ""}
-            onChange={handleChange}
-            className={`w-full px-4 py-2 border-2 rounded-lg focus:ring-4 focus:ring-yellow-100 focus:border-yellow-500 transition-all ${
-              errors.priceAmount
-                ? "border-red-500 bg-red-50"
-                : "border-gray-400/20"
-            }`}
-            placeholder="Enter amount"
-          />
-          <label className="flex items-center text-gray-700 text-sm gap-2">
-            <input
-              type="checkbox"
-              name="price.negotiable"
-              checked={price.negotiable || false}
-              onChange={handleChange}
-              className="w-4 h-4"
-            />
-            Negotiable
-          </label>
-        </div>
-        {errors.priceAmount && (
-          <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-            <LuTriangleAlert /> {errors.priceAmount}
-          </p>
-        )}
-      </div>
+      <PriceInput price={price} handleChange={handleChange} errors={errors} />
 
       {/* Transaction Type (For Sale) */}
       {isForSale && (
@@ -86,10 +54,13 @@ const ThirdStep = ({
             }`}
           >
             <option value="">Select transaction type</option>
-            {transactionTypes.map((value) => (
-              <option value={value}>{value}</option>
+            {transactionTypes.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
             ))}
           </select>
+
           {errors.transactionType && (
             <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
               <LuTriangleAlert /> {errors.transactionType}

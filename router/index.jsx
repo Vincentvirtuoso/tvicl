@@ -18,6 +18,8 @@ import Auth from "../src/pages/Auth";
 import ProtectedRoute from "../src/components/ProtectedRoute";
 import PublicRoute from "../src/components/PublicRoute";
 import Dashboard from "../src/pages/Dashboard";
+import Construction from "../src/pages/Construction";
+import About from "../src/pages/About";
 
 const Router = createBrowserRouter([
   {
@@ -55,6 +57,8 @@ const Router = createBrowserRouter([
         ),
       },
       { path: "interior-decoration", element: <InteriorDecoration /> },
+      { path: "construction", element: <Construction /> },
+      { path: "about-us", element: <About /> },
       { path: "auth/verify-notice", element: <VerifyNotice /> },
 
       { path: "verify-email/:token", element: <VerifyEmail /> },

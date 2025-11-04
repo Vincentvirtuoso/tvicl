@@ -6,8 +6,9 @@ import {
   FiMusic,
   FiVideo,
   FiFile,
+  FiFileText,
 } from "react-icons/fi";
-import { LuFileText, LuX, LuFileArchive } from "react-icons/lu";
+import { LuFileText, LuX, LuFileArchive, LuFilePlus2 } from "react-icons/lu";
 import { FaFilePdf, FaFileWord, FaStar } from "react-icons/fa";
 
 const FileUpload = ({
@@ -24,6 +25,7 @@ const FileUpload = ({
   uploadPlaceholder = "Click to upload files",
   name,
   id,
+  isFile = null,
   loading = false,
   allowCaption = false,
   isCoverable = false,
@@ -47,7 +49,7 @@ const FileUpload = ({
     // Use the type field from schema
     if (type === "image") return <FiCamera size={40} />;
     if (type === "video") return <FiVideo size={40} />;
-    if (type === "document") {
+    if (type === "document" || type === "application") {
       if (fileName.endsWith(".pdf"))
         return <FaFilePdf size={40} color="#E63946" />;
       if (fileName.endsWith(".doc") || fileName.endsWith(".docx"))
@@ -69,10 +71,7 @@ const FileUpload = ({
       {/* Header */}
       <div className="flex sm:flex-row flex-col gap-2 items-start justify-between mb-4">
         <div>
-          <h3
-            className="text-lg font-semibold text-gray-800 flex items-center gap-2"
-            onClick={() => console.log(name)}
-          >
+          <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             <span className="text-2xl">{icon}</span>
             {label}
             {required && (
@@ -84,7 +83,7 @@ const FileUpload = ({
           {description && (
             <p className="text-sm text-gray-600 mt-1">{description}</p>
           )}
-          {minFiles > 0 && (
+          {minFiles > 0 && required && (
             <p className="text-xs text-gray-500 mt-1">
               Minimum {minFiles} {minFiles === 1 ? "file" : "files"} required
             </p>
@@ -113,7 +112,7 @@ const FileUpload = ({
             type="file"
             multiple={isMultiple}
             accept={accept}
-            onChange={(e) => handleFilesChange(name, e)}
+            onChange={(e) => handleFilesChange(isFile || name, e, id || null)}
             className="hidden"
           />
         </label>
@@ -204,7 +203,11 @@ const FileUpload = ({
         </div>
       ) : (
         <div className="mt-4 p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
-          <FiCamera size={40} className="mx-auto text-gray-400 mb-2" />
+          {isFile ? (
+            <LuFilePlus2 size={40} className="mx-auto text-gray-400 mb-2" />
+          ) : (
+            <FiCamera size={40} className="mx-auto text-gray-400 mb-2" />
+          )}
           <p className="text-gray-500 text-sm">No files uploaded yet</p>
           <p className="text-gray-400 text-xs mt-1">
             Click the button above to add files

@@ -20,8 +20,9 @@ const Footer = ({
   navLinks = [
     { label: "Home", href: "/" },
     { label: "Properties", href: "/properties" },
-    { label: "About Us", href: "/about" },
-    { label: "Contact", href: "/contact" },
+    { label: "Interior Decoration", href: "/interior-decoration" },
+    { label: "Construction", href: "/construction" },
+    { label: "About Us", href: "/about-us" },
   ],
 }) => {
   return (
@@ -124,7 +125,7 @@ const Footer = ({
             <li className="flex items-center space-x-3">
               <FiMail className="text-primary flex-shrink-0" />
               <a
-                href={`mailto:${email}`}
+                href={`href:${email}`}
                 className="hover:text-primary transition"
               >
                 {email}

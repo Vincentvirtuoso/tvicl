@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { LuX } from "react-icons/lu";
 
 const toastVariants = {
   success: {
@@ -115,10 +116,10 @@ const Toast = ({
         damping: 30,
         mass: 0.8,
       }}
-      className="pointer-events-auto relative"
+      className="pointer-events-auto relative overflow-hidden rounded-lg"
     >
       <div
-        className={`flex items-start gap-3 min-w-[300px] max-w-md px-4 py-3 rounded-xl shadow-lg ${colors} backdrop-blur-sm`}
+        className={`flex items-start gap-3 min-w-[300px] max-w-md px-4 py-3 shadow-lg ${colors} backdrop-blur-sm`}
       >
         {/* Icon */}
         <div className="flex-shrink-0 mt-0.5">{icon}</div>
@@ -137,19 +138,7 @@ const Toast = ({
           className="absolute top-3 right-3 flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity"
           aria-label="Close notification"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <LuX />
         </button>
       </div>
 
