@@ -260,9 +260,9 @@ const Navbar = () => {
               alt="TVICL"
               className="w-9 h-9 lg:w-12 lg:h-12 rounded-full"
             />
-            <div className="hidden sm:block">
+            <div className="">
               <div className="font-bold text-lg leading-none">TVICL</div>
-              <div className="text-[11px] text-gray-500 dark:text-gray-400">
+              <div className="text-[11px] text-gray-500 dark:text-gray-400 hidden sm:block">
                 Tee & Vee Integrated Company Limited
               </div>
             </div>
@@ -298,7 +298,7 @@ const Navbar = () => {
             </button>
 
             {/* notifications */}
-            <div className="relative">
+            {/* <div className="relative">
               <button
                 onClick={() => {
                   if (menuOpen) {
@@ -314,7 +314,7 @@ const Navbar = () => {
                   4
                 </span>
               </button>
-            </div>
+            </div> */}
 
             {/* profile */}
             <div className="relative">

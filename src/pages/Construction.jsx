@@ -17,6 +17,7 @@ import {
   LuCircleCheck as CheckCircle,
   LuPhone as Phone,
 } from "react-icons/lu";
+import { exteriors, teams } from "../assets/interiors";
 
 const services = [
   {
@@ -82,8 +83,7 @@ const portfolio = [
     title: "Modern Office Complex",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1590496793907-4c5b08aa2f57?auto=format&fit=crop&w=800&q=80",
+    image: exteriors.exterior4,
     title: "Infrastructure Project",
   },
   {
@@ -107,13 +107,7 @@ const portfolio = [
     title: "Steel Frame Structure",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1581094271901-8022df4466f9?auto=format&fit=crop&w=800&q=80",
-    title: "Urban Development",
-  },
-  {
-    image:
-      "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=800&q=80",
+    image: exteriors.exterior1,
     title: "Sustainable Building",
   },
 ];
@@ -363,7 +357,7 @@ const Construction = () => {
             </div>
             <div className="relative h-[600px] rounded-2xl overflow-hidden shadow-2xl">
               <img
-                src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80"
+                src={teams.team1}
                 alt="Construction Professionals"
                 className="w-full h-full object-cover"
               />
@@ -390,7 +384,7 @@ const Construction = () => {
             alt="Construction Crane"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-yellow-900/95 to-yellow-700/90" />
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-900/75 to-yellow-700/70" />
         </div>
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10 text-white">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
@@ -400,15 +394,10 @@ const Construction = () => {
             Let's build something extraordinary together. Contact our
             construction team today for a free consultation and quote.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-yellow-600 hover:bg-gray-100 px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
-              <Phone className="w-5 h-5" />
-              Contact Construction Team
-            </button>
-            <button className="bg-yellow-600 border-2 border-white text-white hover:bg-yellow-700 px-8 py-4 rounded-lg font-semibold text-lg transition shadow-lg hover:shadow-xl">
-              View All Projects
-            </button>
-          </div>
+          <button className="bg-white text-yellow-600 hover:bg-gray-100 px-8 py-3 rounded-lg font-semibold text-lg transition shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-4">
+            <Phone className="w-5 h-5" />
+            Contact Team
+          </button>
         </div>
       </div>
     </div>

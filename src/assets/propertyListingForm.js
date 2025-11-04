@@ -279,7 +279,7 @@ export const fields = {
 
   // Additional
   additionalRooms: [],
-  highlights: "",
+  highlights: [],
 
   // Contact
   contactPerson: [

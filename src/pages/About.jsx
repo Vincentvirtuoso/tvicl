@@ -15,6 +15,7 @@ import {
   LuCircleCheck as CheckCircle,
 } from "react-icons/lu";
 import logo from "/images/logo.png";
+import { teams } from "../assets/interiors";
 
 const companyInfo = {
   name: "Your Company Name",
@@ -61,27 +62,25 @@ const team = [
     role: "Visionary Leader",
     quote:
       "Excellence is not just our standard—it's our foundation for every project we undertake.",
-    image:
-      "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=600&q=80",
+    image: "/images/interiors/ceo.jpeg",
   },
-  {
-    name: "Chief Operations Officer",
-    role: "Operations Director",
-    image:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
-  },
+  // {
+  //   name: "Chief Operations Officer",
+  //   role: "Operations Director",
+  //   image:
+  //     "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
+  // },
   {
     name: "Lead Architect",
     role: "Design Innovation",
-    image:
-      "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=600&q=80",
+    image: teams.team1,
   },
-  {
-    name: "Construction Manager",
-    role: "Project Excellence",
-    image:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=600&q=80",
-  },
+  // {
+  //   name: "Construction Manager",
+  //   role: "Project Excellence",
+  //   image:
+  //     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=600&q=80",
+  // },
 ];
 
 const partners = [

@@ -8,6 +8,7 @@ import {
   validGas,
   validFacing,
 } from "../../../assets/propertyListingForm";
+import HighlightsInput from "../HighlightsInput";
 
 const FourthStep = ({ handleChange, errors, formData }) => {
   return (
@@ -273,6 +274,8 @@ const FourthStep = ({ handleChange, errors, formData }) => {
           <p className="text-red-500 text-sm mt-1">{errors.facing}</p>
         )}
       </div>
+
+      <HighlightsInput formData={formData} onChange={handleChange} />
 
       {/* Additional Rooms */}
       <div>

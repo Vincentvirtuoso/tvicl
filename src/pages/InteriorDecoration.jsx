@@ -13,14 +13,15 @@ import {
   LuChevronRight as ChevronRight,
   LuStar as Star,
 } from "react-icons/lu";
+import { exteriors, interiors, popular_interiors } from "../assets/interiors";
+import { motion } from "framer-motion";
 
 const services = [
   {
     title: "Residential Interiors",
     description:
       "Create warm, inviting living spaces that reflect your personal style and comfort.",
-    image:
-      "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80",
+    image: popular_interiors.interior4,
   },
   {
     title: "Commercial & Office Spaces",
@@ -33,38 +34,28 @@ const services = [
     title: "Exterior Beautification",
     description:
       "Enhance curb appeal with stunning facades and landscape integration.",
-    image:
-      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
+    image: exteriors.exterior1,
   },
   {
     title: "Renovation & Remodeling",
     description:
       "Transform existing spaces with creative solutions and modern upgrades.",
-    image:
-      "https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?auto=format&fit=crop&w=800&q=80",
+    image: popular_interiors.interior1,
   },
 ];
 
 const portfolio = [
   {
-    image:
-      "https://images.unsplash.com/photo-1600210492493-0946911123ea?auto=format&fit=crop&w=600&q=80",
-    title: "Modern Villa",
+    image: interiors.interior13,
+    title: "Modern Display",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80",
+    image: interiors.interior12,
     title: "Luxury Apartment",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=600&q=80",
-    title: "Executive Office",
-  },
-  {
-    image:
-      "https://images.unsplash.com/photo-1600607687644-c7171b42498f?auto=format&fit=crop&w=600&q=80",
-    title: "Boutique Hotel",
+    image: exteriors.exterior6,
+    title: "Hotel/Office",
   },
   {
     image:
@@ -72,8 +63,7 @@ const portfolio = [
     title: "Restaurant Design",
   },
   {
-    image:
-      "https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=600&q=80",
+    image: interiors.interior6,
     title: "Penthouse Suite",
   },
 ];
@@ -208,22 +198,21 @@ const InteriorDesign = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <img
-              src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=80"
+              src={popular_interiors.interior1}
               alt="Interior Design 1"
               className="w-full h-64 object-cover rounded-lg shadow-lg"
             />
             <img
-              src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80"
-              alt="Interior Design 2"
+              src={popular_interiors.interior2}
               className="w-full h-64 object-cover rounded-lg shadow-lg mt-8"
             />
             <img
-              src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=600&q=80"
+              src={popular_interiors.interior11}
               alt="Interior Design 3"
               className="w-full h-64 object-cover rounded-lg shadow-lg -mt-8"
             />
             <img
-              src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80"
+              src={popular_interiors.interior4}
               alt="Interior Design 4"
               className="w-full h-64 object-cover rounded-lg shadow-lg"
             />
@@ -241,25 +230,43 @@ const InteriorDesign = () => {
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {services.map((service, idx) => (
-              <div
+              <motion.div
                 key={idx}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
                 className="group bg-gray-50 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
               >
                 <div className="relative h-48 overflow-hidden">
-                  <img
+                  {/* Continuous pan and zoom effect */}
+                  <motion.img
                     src={service.image}
                     alt={service.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover"
+                    animate={{
+                      scale: [1.05, 1.1, 1.05],
+                      x: [0, 15, -10, 0],
+                      y: [0, -10, 10, 0],
+                    }}
+                    transition={{
+                      duration: 20, // full loop duration
+                      ease: "easeInOut",
+                      repeat: Infinity,
+                      repeatType: "mirror",
+                    }}
                   />
+
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
+
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-2 text-gray-900">
+                  <h3 className="text-xl font-semibold mb-2 text-gray-900 group-hover:text-yellow-600 transition-colors">
                     {service.title}
                   </h3>
                   <p className="text-gray-600 text-sm">{service.description}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
