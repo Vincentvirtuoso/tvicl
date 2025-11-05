@@ -363,7 +363,7 @@ const PropertyDetail = () => {
                   value={`${property.floorSize?.value} ${property.floorSize?.unit}`}
                 />
               )}
-              {property.carpetArea.value && (
+              {property.carpetArea?.value && (
                 <DetailItem
                   label="Carpet Area"
                   value={`${property.carpetArea?.value} ${property.carpetArea?.unit}`}
