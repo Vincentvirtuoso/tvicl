@@ -10,7 +10,6 @@ import {
   LuCircleCheck,
   LuX,
 } from "react-icons/lu";
-import { FaGoogle } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import logo from "/images/logo.png";
 import hero from "/images/hero.jpeg";
@@ -213,18 +212,6 @@ export default function Auth() {
     navigate("/");
   };
 
-  // Animations
-  const panelVariants = {
-    hidden: { opacity: 0, y: 16 },
-    enter: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.45, ease: "easeOut" },
-    },
-    exit: { opacity: 0, y: -8, transition: { duration: 0.25 } },
-  };
-
-  // Register view (Split screen)
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-full overflow-hidden grid grid-cols-1 lg:grid-cols-2 lg:h-screen">
@@ -674,16 +661,16 @@ export default function Auth() {
                     )}
                   </button>
 
-                  <button
+                  {/* <button
                     type="button"
                     onClick={handleGuest}
                     className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md border border-gray-600/30 text-sm hover:border-gray-600/50 text-gray-600"
                   >
                     Continue as guest
-                  </button>
+                  </button> */}
 
                   <div className="flex md:items-center flex-col md:flex-row justify-between text-sm text-gray-500 mt-1 gap-3">
-                    <div className="flex items-center justify-center gap-2 py-2 px-4 border border-primary rounded-md">
+                    {/* <div className="flex items-center justify-center gap-2 py-2 px-4 border border-primary rounded-md">
                       <FcGoogle className="w-4 h-4" />
                       <button
                         type="button"
@@ -692,7 +679,7 @@ export default function Auth() {
                       >
                         Continue with Google
                       </button>
-                    </div>
+                    </div> */}
 
                     <div className="text-right text-xs">
                       <div className="text-gray-500">
